@@ -171,8 +171,13 @@ nav button.on{color:var(--ac);background:var(--soft)}
 [data-theme='cyber'] nav button.on{text-shadow:0 0 10px var(--ac)}
 
 /* ── Home ala mockup ── */
-.spark{width:100%;height:44px;margin:8px 0 4px;color:rgba(255,255,255,.85)}
-[data-theme='gold'] .spark{color:rgba(26,20,5,.8)}
+.spark{width:100%;height:48px;margin:10px 0 2px;color:rgba(255,255,255,.9);cursor:crosshair}
+[data-theme='gold'] .spark{color:rgba(26,20,5,.85)}
+.heroTop{display:flex;justify-content:space-between;align-items:flex-start}
+.eye{background:rgba(255,255,255,.18);border:0;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer}
+[data-theme='gold'] .eye{background:rgba(0,0,0,.25)}
+.heroTip{font-size:12px;font-weight:600;background:rgba(255,255,255,.18);border-radius:8px;padding:3px 8px;display:inline-block;margin-bottom:4px}
+[data-theme='gold'] .heroTip{background:rgba(0,0,0,.25)}
 
 .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 .tile{
@@ -189,6 +194,9 @@ nav button.on{color:var(--ac);background:var(--soft)}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .stat{background:var(--sf);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px}
 .stat b{font-size:15px;font-variant-numeric:tabular-nums}
+.minibar{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:6px}
+.minibar i{flex:1;background:var(--soft);border-radius:4px 4px 2px 2px;min-height:3px;transition:height .3s}
+.minibar i.now{background:var(--hero)}
 
 .mkt{gap:12px}
 .mcoin{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
@@ -196,6 +204,16 @@ nav button.on{color:var(--ac);background:var(--soft)}
 .pill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
 .pill.pos{background:color-mix(in srgb,var(--pos) 15%,transparent)}
 .pill.neg{background:color-mix(in srgb,var(--neg) 15%,transparent)}
+
+/* ── Animasi masuk & polesan ── */
+main > section, main > .quick, main > .stats{animation:rise .35s ease both}
+main > section:nth-child(2), main > .stats{animation-delay:.05s}
+main > section:nth-child(3){animation-delay:.1s}
+main > section:nth-child(4){animation-delay:.15s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){main > *{animation:none !important}}
+section,.tile,.stat{will-change:transform}
+input,select,textarea,button{transition:border-color .15s, background .15s, transform .15s}
 
 /* ── Pemilih tema (Settings) ── */
 .themegrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}

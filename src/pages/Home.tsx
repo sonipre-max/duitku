@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, getKv } from '../db';
 import { idr, today } from '../util';
@@ -26,19 +26,20 @@ export default function Home({ go }: { go: (t: string) => void }) {
   const name = cfg.name || 'Soni';
 
   const [mkt, setMkt] = useState<{ sym: string; price: number; chg: number }[]>([]);
-  const [spark, setSpark] = useState<number[]>([]);
+  const [m30, setM30] = useState<number[]>([]);
+  const [hide, setHide] = useState(false);
+  const [hi, setHi] = useState(-1);
 
   useEffect(() => {
     (async () => {
-      const H = cfg.binanceKey ? { 'X-MBX-APIKEY': cfg.binanceKey } : undefined;
       try {
         const syms = encodeURIComponent(JSON.stringify(MKT.map(m => m.sym)));
-        const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${syms}`, { headers: H });
+        const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${syms}`);
         if (r.ok) setMkt((await r.json()).map((t: any) => ({ sym: t.symbol, price: +t.lastPrice, chg: +t.priceChangePercent })));
       } catch { /* offline */ }
       try {
-        const r = await fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=24', { headers: H });
-        if (r.ok) setSpark((await r.json()).map((k: any[]) => +k[4]));
+        const r = await fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=30');
+        if (r.ok) setM30((await r.json()).map((k: any[]) => +k[4]));
       } catch { /* offline */ }
     })();
   }, []);
@@ -64,25 +65,62 @@ export default function Home({ go }: { go: (t: string) => void }) {
   }, [trades.length]);
   const growth = invested > 0 ? ((value - invested) / invested) * 100 : null;
 
-  // sparkline SVG dari 24 jam BTC (data nyata)
-  const min = Math.min(...spark), max = Math.max(...spark);
-  const pts = spark.length > 1
-    ? spark.map((v, i) => `${(i / (spark.length - 1)) * 100},${34 - ((v - min) / (max - min || 1)) * 30}`).join(' ')
-    : '';
+  // ── grafik area 30 hari BTC interaktif (hover/tap) ──
+  const pts = useMemo(() => m30.length > 1
+    ? m30.map((v, i) => [(i / (m30.length - 1)) * 100, 34 - ((v - Math.min(...m30)) / (Math.max(...m30) - Math.min(...m30) || 1)) * 30])
+    : [], [m30]);
+  const line = pts.map(p => p.map(n => +n.toFixed(2)).join(',')).join(' ');
+
+  // tren pengeluaran 7 hari terakhir (mini bar)
+  const days7 = useMemo(() => {
+    const arr: number[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      arr.push(txs.filter(t => t.date === k && t.type === 'out' && t.category !== 'Transfer').reduce((s, t) => s + t.amount, 0));
+    }
+    return arr;
+  }, [txs.length]);
+  const spendMax = Math.max(...days7, 1);
+  const weekOut = days7.reduce((s, v) => s + v, 0);
+
+  const mask = (s: string) => hide ? '••••••' : s;
 
   return (
     <>
-      {/* Kartu hero: total aset + grafik + pertumbuhan */}
+      {/* Kartu hero: total aset + grafik 30 hari + pertumbuhan */}
       <section className="hero" onClick={() => go('uang')}>
-        <div className="mute">Halo, {name} 👋</div>
-        <div className="big">{idr(bal)}</div>
-        {pts && (
-          <svg className="spark" viewBox="0 0 100 36" preserveAspectRatio="none">
-            <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.6" opacity=".85" />
+        <div className="heroTop">
+          <div>
+            <div className="mute">Halo, {name} 👋</div>
+            <div className="big">{mask(idr(bal))}</div>
+          </div>
+          <button className="eye" onClick={e => { e.stopPropagation(); setHide(!hide); }}>{hide ? '🙈' : '👁️'}</button>
+        </div>
+        {pts.length > 1 && (
+          <svg className="spark" viewBox="0 0 100 36" preserveAspectRatio="none"
+            onMouseMove={e => {
+              const r = (e.currentTarget as SVGElement).getBoundingClientRect();
+              setHi(Math.min(m30.length - 1, Math.max(0, Math.round(((e.clientX - r.left) / r.width) * (m30.length - 1)))));
+            }}
+            onMouseLeave={() => setHi(-1)}>
+            <defs>
+              <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="currentColor" stopOpacity=".35" />
+                <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <polygon points={`0,36 ${line} 100,36`} fill="url(#hg)" />
+            <polyline points={line} fill="none" stroke="currentColor" strokeWidth="1.4" />
+            {hi >= 0 && <>
+              <line x1={pts[hi][0]} y1="0" x2={pts[hi][0]} y2="36" stroke="currentColor" strokeWidth=".3" opacity=".6" />
+              <circle cx={pts[hi][0]} cy={pts[hi][1]} r="1.6" fill="currentColor" />
+            </>}
           </svg>
         )}
+        {hi >= 0 && m30[hi] != null && <div className="heroTip">BTC · {m30.length - hi - 1} hari lalu: USD {Math.round(m30[hi]).toLocaleString('en-US')}</div>}
         {growth !== null ? (
-          <div className="chip">▲ {growth >= 0 ? '+' : ''}{growth.toFixed(1)}% · modal {idr(invested)}</div>
+          <div className="chip">▲ {growth >= 0 ? '+' : ''}{growth.toFixed(1)}% · modal {mask(idr(invested))}</div>
         ) : (
           <div className="chip">Bulan ini: <span className="pos">+{idr(inc)}</span> · <span className="neg">-{idr(out)}</span></div>
         )}
@@ -98,10 +136,16 @@ export default function Home({ go }: { go: (t: string) => void }) {
         ))}
       </div>
 
-      {/* Ringkasan bulan ini */}
+      {/* Ringkasan: bulan ini + mini bar 7 hari */}
       <div className="stats">
-        <div className="stat"><span className="mute">Pemasukan</span><b className="pos">+{idr(inc)}</b></div>
-        <div className="stat"><span className="mute">Pengeluaran</span><b className="neg">-{idr(out)}</b></div>
+        <div className="stat"><span className="mute">Pemasukan bulan ini</span><b className="pos">+{idr(inc)}</b></div>
+        <div className="stat">
+          <span className="mute">Pengeluaran 7 hari</span>
+          <b className="neg">-{idr(weekOut)}</b>
+          <div className="minibar">
+            {days7.map((v, i) => <i key={i} style={{ height: Math.max(8, (v / spendMax) * 100) + '%' }} className={i === 6 ? 'now' : ''} />)}
+          </div>
+        </div>
       </div>
 
       {/* Agenda hari ini */}
