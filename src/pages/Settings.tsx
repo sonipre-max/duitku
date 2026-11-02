@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { db, TABLES } from '../db';
 import { loadCfg, saveCfg } from '../ai';
 import { saveFile } from '../util';
+import { THEMES, getTheme, setTheme, ThemeId } from '../theme';
 
 const sha = async (s: string) =>
   [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(b => b.toString(16).padStart(2, '0')).join('');
@@ -10,7 +11,9 @@ export default function Settings() {
   const [c, setC] = useState(loadCfg());
   const [pin, setPin] = useState('');
   const [msg, setMsg] = useState('');
+  const [theme, setT] = useState<ThemeId>(getTheme());
   const set = (p: Partial<typeof c>) => { const n = { ...c, ...p }; setC(n); saveCfg(n); };
+  const pick = (t: ThemeId) => { setTheme(t); setT(t); };
 
   const backup = async () => {
     const o: any = {};
@@ -30,6 +33,21 @@ export default function Settings() {
 
   return (
     <>
+      <section>
+        <h2>Tema tampilan</h2>
+        <div className="themegrid">
+          {THEMES.map(t => (
+            <button key={t.id} className={'themecard' + (theme === t.id ? ' on' : '')} onClick={() => pick(t.id)}>
+              <div className="tprev" style={{ background: t.swatch[0] }}>
+                <span style={{ display: 'inline-block', width: '55%', height: 18, borderRadius: 6, background: t.swatch[1] }} />
+              </div>
+              <div className="tname">{t.name}</div>
+              <div className="tdesc"><span className="tdot" style={{ background: t.swatch[1] }} />{t.desc}</div>
+            </button>
+          ))}
+        </div>
+        <div className="tag" style={{ marginTop: 8 }}>Tema langsung aktif saat dipilih dan tersimpan di perangkat ini.</div>
+      </section>
       <section>
         <h2>Model AI</h2>
         <select value={c.provider} onChange={e => set({ provider: e.target.value as any, model: e.target.value === 'gemini' ? 'gemini-2.0-flash' : 'openrouter/auto' })}>
