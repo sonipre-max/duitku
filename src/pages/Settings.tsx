@@ -49,6 +49,11 @@ export default function Settings() {
         <div className="tag" style={{ marginTop: 8 }}>Tema langsung aktif saat dipilih dan tersimpan di perangkat ini.</div>
       </section>
       <section>
+        <h2>Binance API</h2>
+        <input type="password" value={c.binanceKey || ''} onChange={e => set({ binanceKey: e.target.value })} placeholder="API key Binance (opsional)" />
+        <div className="tag">Dipakai untuk data harga pasar (ticker 24 jam & grafik). Tanpa key pun data publik tetap jalan; key hanya menaikkan batas rate. Key disimpan lokal di perangkat ini.</div>
+      </section>
+      <section>
         <h2>Model AI</h2>
         <select value={c.provider} onChange={e => set({ provider: e.target.value as any, model: e.target.value === 'gemini' ? 'gemini-2.0-flash' : 'openrouter/auto' })}>
           <option value="openrouter">OpenRouter</option><option value="gemini">Google Gemini</option>
