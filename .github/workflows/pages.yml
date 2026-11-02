@@ -21,6 +21,7 @@ jobs:
       - name: Install deps
         run: |
           npm install -g npm@latest
+          npm config set registry https://registry.npmjs.org/
           for i in 1 2 3; do npm install --no-audit --no-fund && break || sleep 10; done
           test -d node_modules/vite
       - run: npm run build
