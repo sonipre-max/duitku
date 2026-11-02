@@ -47,6 +47,10 @@ body{
   font:16px/1.5 -apple-system,"SF Pro Display","Segoe UI",Roboto,sans-serif;
   -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased;
 }
+/* scrollbar halus, bukan scrollbar OS kotak-kotak */
+main{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+main::-webkit-scrollbar{width:4px}
+main::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
 [data-theme='gold'] body{letter-spacing:.01em}
 .app{display:flex;flex-direction:column;height:100%;padding-top:env(safe-area-inset-top);max-width:480px;margin:0 auto}
 

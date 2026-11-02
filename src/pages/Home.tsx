@@ -143,7 +143,7 @@ export default function Home({ go }: { go: (t: string) => void }) {
           <span className="mute">Pengeluaran 7 hari</span>
           <b className="neg">-{idr(weekOut)}</b>
           <div className="minibar">
-            {days7.map((v, i) => <i key={i} style={{ height: Math.max(8, (v / spendMax) * 100) + '%' }} className={i === 6 ? 'now' : ''} />)}
+            {days7.map((v, i) => <i key={i} style={{ height: v > 0 ? Math.max(8, (v / spendMax) * 100) + '%' : '4px', opacity: v > 0 ? 1 : .35 }} className={i === 6 ? 'now' : ''} />)}
           </div>
         </div>
       </div>
