@@ -17,10 +17,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Install deps (retry)
+          node-version: 22
+      - name: Install deps
         run: |
-          npm install || (sleep 5 && npm install) || (sleep 10 && npm ci --no-audit --no-fund)
+          npm install -g npm@latest
+          for i in 1 2 3; do npm install --no-audit --no-fund && break || sleep 10; done
+          test -d node_modules/vite
       - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
