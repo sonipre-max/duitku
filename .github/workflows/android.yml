@@ -1,0 +1,30 @@
+name: Build APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm install
+      - run: npm run build
+      - run: npx cap add android
+      - name: Izin notifikasi
+        run: sed -i 's#<application#<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <application#' android/app/src/main/AndroidManifest.xml
+      - run: npx cap sync android
+      - name: Build APK debug
+        working-directory: android
+        run: ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: duitku-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
