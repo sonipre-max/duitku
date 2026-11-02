@@ -43,11 +43,14 @@ export default function App() {
   }, []);
 
   if (locked) return <Lock onOk={() => setLocked(false)} />;
+  const title = cfg ? 'Setelan' : TABS.find(t => t[0] === tab)![1];
   return (
     <div className="app">
       <div className="top">
-        <h1>{cfg ? 'Setelan' : TABS.find(t => t[0] === tab)![1]}</h1>
-        <button className="btn alt" style={{ width: 'auto' }} onClick={() => setCfg(!cfg)}>{cfg ? 'Tutup' : 'Setelan'}</button>
+        <h1>{title}</h1>
+        <div className="topbtns">
+          <button className="icobtn" title="Setelan" onClick={() => setCfg(!cfg)}>⚙️</button>
+        </div>
       </div>
       <main>
         {cfg ? <Settings /> : tab === 'home' ? <Home go={setTab} /> : tab === 'uang' ? <Finance />

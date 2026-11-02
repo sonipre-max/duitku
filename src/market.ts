@@ -1,5 +1,6 @@
 import { getKv, setKv } from './db';
 import { addDays, parse, today, ymd } from './util';
+import { loadCfg } from './ai';
 
 // id aset: "bn:SIMBOL" = Binance (USDT), "yf:SIMBOL" = Yahoo Finance
 export const ASSETS = [
@@ -17,6 +18,16 @@ export const ASSETS = [
 export const label = (id: string) => ASSETS.find(a => a.id === id)?.label ?? id.slice(3);
 export const isIDR = (id: string) => id.endsWith('.JK');
 
+// Header Binance API key (opsional, menaikkan rate limit) — hanya di native/Capacitor.
+// Di browser mengirim header arbitrary ke Binance memicu preflight CORS yang tidak diizinkan,
+// jadi key hanya dipakai di APK (CapacitorHttp lewat jalur native, bebas CORS).
+function bH(): Record<string, string> | undefined {
+  const key = loadCfg().binanceKey;
+  if (!key) return undefined;
+  const isNative = typeof (window as any).Capacitor !== 'undefined' && !(window as any).Capacitor.isWebPlatform?.();
+  return isNative ? { 'X-MBX-APIKEY': key } : undefined;
+}
+
 export async function usdIdr(): Promise<number> {
   try {
     const r = await fetch('https://open.er-api.com/v6/latest/USD');
@@ -33,7 +44,7 @@ export async function series(id: string, from: string): Promise<Record<string, n
   if (src === 'bn') {
     let start = parse(from).getTime();
     for (let i = 0; i < 10; i++) {
-      const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=1d&startTime=${start}&limit=1000`);
+      const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=1d&startTime=${start}&limit=1000`, { headers: bH() });
       const k = await r.json();
       if (!Array.isArray(k)) throw new Error('Binance: ' + (k?.msg || 'gagal'));
       if (!k.length) break;
@@ -59,7 +70,7 @@ export async function latest(id: string): Promise<number> {
     const rate = await usdIdr();
     let p: number;
     if (id.startsWith('bn:')) {
-      const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${id.slice(3)}`);
+      const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${id.slice(3)}`, { headers: bH() });
       p = parseFloat((await r.json()).price);
     } else {
       const s = await series(id, addDays(today(), -7));

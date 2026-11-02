@@ -10,8 +10,12 @@ async function context() {
   const by: Record<string, number> = {};
   let i = 0, o = 0;
   txs.forEach(t => { if (t.type === 'out') { o += t.amount; by[t.category] = (by[t.category] || 0) + t.amount; } else i += t.amount; });
+  const accounts = await db.accounts.toArray();
+  const trades = await db.trades.toArray();
+  const inv = trades.reduce((s, t) => s + t.amount, 0);
   const open = (await db.tasks.toArray()).filter(t => !t.done).slice(0, 20).map(t => `${t.title} (${t.date})`);
-  return `Data pengguna bulan ${m}: pemasukan Rp${i}, pengeluaran Rp${o}, per kategori ${JSON.stringify(by)}. Tugas terbuka: ${open.join('; ') || '-'}.`;
+  const acc = accounts.map(a => a.name).join(', ');
+  return `Data pengguna bulan ${m}: pemasukan Rp${i}, pengeluaran Rp${o}, per kategori ${JSON.stringify(by)}. Rekening: ${acc}. Total dibelanjakan untuk simulasi DCA sejauh ini: Rp${inv}. Tugas terbuka: ${open.join('; ') || '-'}. Jawab pertanyaan tentang angka-angka ini dengan hitungan yang benar.`;
 }
 
 export default function AI() {
@@ -27,15 +31,27 @@ export default function AI() {
     setMsgs(next); setText(''); setBusy(true);
     try {
       if (mode === 'task') {
-        const sys = `Hari ini ${today()}. Ubah kalimat pengguna menjadi satu objek JSON {"title":string,"date":"YYYY-MM-DD","time":"HH:MM" atau "","repeat":"none"|"daily"|"weekly"|"monthly"}. Balas hanya JSON.`;
-        const r = await ask([next[next.length - 1]], cfg, sys);
-        const j = JSON.parse(r.match(/\{[\s\S]*\}/)![0]);
-        const t = { title: j.title, date: j.date, time: j.time || '', repeat: j.repeat || 'none', priority: 2 as const, done: false, doneOn: [] };
-        const id = await db.tasks.add(t);
-        schedule({ ...t, id });
-        setMsgs([...next, { role: 'assistant', content: `Tugas dibuat: ${t.title} pada ${t.date}${t.time ? ' ' + t.time : ''}.` }]);
+        const sys = `Hari ini ${today()}. Ubah kalimat pengguna menjadi satu objek JSON {"title":string,"date":"YYYY-MM-DD","time":"HH:MM" atau "","repeat":"none"|"daily"|"weekly"|"monthly"}. "besok" = ${today()} +1 hari, "lusa" = +2 hari. Jika jam disebut "pagi" pakai 08:00, "siang" 12:00, "sore" 16:00, "malam" 19:00. Balas HANYA JSON tanpa teks lain.`;
+        let r = '';
+        for (let att = 0; att < 2; att++) {
+          r = (await ask([next[next.length - 1]], cfg, sys)).trim();
+          const m = r.match(/\{[\s\S]*\}/);
+          if (m) {
+            try {
+              const j = JSON.parse(m[0]);
+              if (j?.title && /^\d{4}-\d{2}-\d{2}$/.test(j.date || '')) {
+                const t = { title: String(j.title), date: j.date, time: /^\d{2}:\d{2}$/.test(j.time || '') ? j.time : '', repeat: (['none', 'daily', 'weekly', 'monthly'].includes(j.repeat) ? j.repeat : 'none') as any, priority: 2 as const, done: false, doneOn: [] };
+                const id = await db.tasks.add(t);
+                schedule({ ...t, id });
+                setMsgs([...next, { role: 'assistant', content: `✅ Tugas dibuat: ${t.title} pada ${t.date}${t.time ? ' pukul ' + t.time : ''}${t.repeat !== 'none' ? ` (diulang ${t.repeat === 'daily' ? 'tiap hari' : t.repeat === 'weekly' ? 'tiap minggu' : 'tiap bulan'})` : ''}.` }]);
+                return;
+              }
+            } catch { /* JSON rusak → coba lagi */ }
+          }
+        }
+        setMsgs([...next, { role: 'assistant', content: `Gagal memahami tugas. Coba tulis lebih eksplisit, mis. "bayar listrik 5 November jam 19:00". Jawaban AI: ${r.slice(0, 120)}` }]);
       } else {
-        const sys = 'Kamu asisten keuangan dan produktivitas pribadi. Jawab singkat, jelas, dalam bahasa Indonesia. Simulasi investasi bukan nasihat keuangan.' + (cfg.withData ? ' ' + await context() : '');
+        const sys = 'Kamu asisten keuangan dan produktivitas pribadi. Jawab singkat, jelas, dalam bahasa Indonesia. Hitung dengan akurat; tunjukkan perhitungan singkat jika relevan. Simulasi investasi bukan nasihat keuangan.' + (cfg.withData ? ' ' + await context() : '');
         setMsgs([...next, { role: 'assistant', content: await ask(next, cfg, sys) }]);
       }
     } catch (e: any) {

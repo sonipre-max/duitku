@@ -53,6 +53,13 @@ body{
 /* ── Header ── */
 .top{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 8px}
 .top h1{font-size:22px;margin:0;font-weight:800;letter-spacing:-.02em}
+.topbtns{display:flex;gap:8px}
+.icobtn{
+  width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--sf);
+  font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);
+}
+[data-theme='gold'] .icobtn{border-color:rgba(212,175,55,.4)}
+[data-theme='cyber'] .icobtn{border-color:rgba(168,85,247,.4)}
 [data-theme='gold'] .top h1{color:var(--ac);letter-spacing:.03em}
 [data-theme='cyber'] .top h1{text-shadow:0 0 12px var(--ac)}
 
