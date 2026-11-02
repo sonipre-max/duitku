@@ -30,10 +30,10 @@ export default function Home({ go }: { go: (t: string) => void }) {
 
   return (
     <>
-      <section onClick={() => go('uang')}>
+      <section className="hero" onClick={() => go('uang')}>
         <div className="mute">Total saldo</div>
         <div className="big">{idr(bal)}</div>
-        <div className="mute">Bulan ini: <span className="pos">+{idr(inc)}</span> / <span className="neg">-{idr(out)}</span></div>
+        <div className="chip">Bulan ini: <span className="pos">+{idr(inc)}</span> · <span className="neg">-{idr(out)}</span></div>
       </section>
       <section onClick={() => go('tugas')}>
         <h2>Hari ini</h2>
