@@ -18,7 +18,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
+      - name: Install deps (retry)
+        run: |
+          npm install || (sleep 5 && npm install) || (sleep 10 && npm ci --no-audit --no-fund)
       - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
