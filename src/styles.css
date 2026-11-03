@@ -700,3 +700,15 @@ html[data-time='night'] .qsItem .tag{text-shadow:0 1px 4px rgba(0,0,0,.7)}
 /* subteks carousel jangan pudar */
 .agRow.empty span,.agTxt span{opacity:1 !important;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5)}
 [data-theme='gold'] .agRow.empty span,[data-theme='gold'] .agTxt span{color:#5c4400;text-shadow:none}
+
+
+/* ── Tint penuh: summary/agenda/motto ikut tema (opacity lebih tinggi) ── */
+[data-theme='gold'] .qsItem,[data-theme='gold'] .agendaCard,[data-theme='gold'] .motto{
+  background:linear-gradient(160deg,rgba(255,238,190,.72),rgba(255,209,120,.5)) !important;
+  border-color:rgba(190,150,40,.7) !important;
+  box-shadow:0 0 0 1px rgba(212,175,55,.2) inset,0 0 22px -6px rgba(212,175,55,.5) !important}
+[data-theme='cyber'] .qsItem,[data-theme='cyber'] .agendaCard,[data-theme='cyber'] .motto{
+  background:linear-gradient(160deg,rgba(76,29,149,.72),rgba(30,20,60,.55)) !important;
+  border-color:rgba(168,85,247,.65) !important;
+  box-shadow:0 0 0 1px rgba(168,85,247,.25) inset,0 0 22px -6px rgba(168,85,247,.6) !important}
+[data-theme='cyber'] .qsTxt span{color:#fff !important}
