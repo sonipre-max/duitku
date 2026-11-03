@@ -1,21 +1,28 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Cell, Pie, PieChart } from 'recharts';
 import { db, getKv } from '../db';
 import { idr, today } from '../util';
 import { loadCfg } from '../ai';
 
 const QUICK = [
-  { go: 'uang', icon: '💸', label: 'Catat Keuangan', c: '#3b82f6' },
-  { go: 'tugas', icon: '✅', label: 'To Do List', c: '#22c55e' },
-  { go: 'dca', icon: '📈', label: 'Investasi DCA', c: '#f59e0b' },
-  { go: 'ai', icon: '🤖', label: 'AI Chat', c: '#a855f7' },
+  { go: 'uang', icon: '💸', label: 'Catat Keuangan', short: 'Keuangan', c: '#3b82f6' },
+  { go: 'tugas', icon: '✅', label: 'To Do List', short: 'To Do', c: '#22c55e' },
+  { go: 'dca', icon: '📈', label: 'Investasi DCA', short: 'Investasi', c: '#f59e0b' },
+  { go: 'ai', icon: '🤖', label: 'AI Assistant', short: 'AI', c: '#a855f7' },
 ];
 const MKT = [
-  { sym: 'BTCUSDT', label: 'Bitcoin', icon: '₿', c: '#f7931a' },
-  { sym: 'ETHUSDT', label: 'Ethereum', icon: '◆', c: '#627eea' },
-  { sym: 'SOLUSDT', label: 'Solana', icon: '◎', c: '#14f195' },
-  { sym: 'PAXGUSDT', label: 'Emas (PAXG)', icon: 'Au', c: '#d4af37' },
+  { sym: 'BTCUSDT', t: 'BTC', label: 'Bitcoin', icon: '₿', c: '#f7931a' },
+  { sym: 'ETHUSDT', t: 'ETH', label: 'Ethereum', icon: '◆', c: '#627eea' },
+  { sym: 'SOLUSDT', t: 'SOL', label: 'Solana', icon: '◎', c: '#14f195' },
+  { sym: 'PAXGUSDT', t: 'PAXG', label: 'Emas (PAXG)', icon: 'Au', c: '#d4af37' },
 ];
+
+// klasifikasi aset DCA utk donut portofolio
+const cls = (sym: string) => sym.startsWith('yf:') ? 'Saham' : sym.includes('PAXG') || sym.includes('XAU') ? 'Emas' : 'Crypto';
+const DONUT_C: Record<string, string> = { Crypto: '#f97316', Saham: '#3b82f6', Emas: '#22c55e' };
+
+const kFmt = (n: number) => n >= 1000 ? '$' + (n / 1000).toFixed(1) + 'K' : '$' + n.toFixed(1);
 
 export default function Home({ go }: { go: (t: string) => void }) {
   const accounts = useLiveQuery(() => db.accounts.toArray(), []) || [];
@@ -24,11 +31,13 @@ export default function Home({ go }: { go: (t: string) => void }) {
   const trades = useLiveQuery(() => db.trades.toArray(), []) || [];
   const cfg = loadCfg();
   const name = cfg.name || 'Soni';
+  const theme = (document.documentElement.getAttribute('data-theme') || 'light') as 'light' | 'darkpro' | 'gold' | 'cyber';
 
   const [mkt, setMkt] = useState<{ sym: string; price: number; chg: number }[]>([]);
   const [m30, setM30] = useState<number[]>([]);
   const [hide, setHide] = useState(false);
   const [hi, setHi] = useState(-1);
+  const [px, setPx] = useState<Record<string, number>>({});
 
   useEffect(() => {
     (async () => {
@@ -49,29 +58,37 @@ export default function Home({ go }: { go: (t: string) => void }) {
   const real = txs.filter(t => t.date.startsWith(m) && t.category !== 'Transfer');
   const inc = real.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
   const out = real.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
-  const todays = tasks.filter(t => t.repeat === 'none' ? t.date === today() && !t.done : t.repeat === 'daily').slice(0, 4);
+  const net = inc - out;
+  const todays = tasks.filter(t => t.repeat === 'none' ? t.date === today() && !t.done : t.repeat === 'daily');
+  const doneToday = tasks.filter(t => t.date === today() && t.done);
   const invested = trades.reduce((s, t) => s + t.amount, 0);
 
-  // nilai portofolio DCA sekarang
-  const [value, setValue] = useState(0);
+  // portofolio: nilai per aset + alokasi per kelas
   useEffect(() => {
     (async () => {
       const qty: Record<string, number> = {};
       trades.forEach(t => (qty[t.symbol] = (qty[t.symbol] || 0) + t.qty));
-      let v = 0;
-      for (const [s, q] of Object.entries(qty)) v += q * (await getKv('px:' + s, 0));
-      setValue(v);
+      const o: Record<string, number> = {};
+      for (const [s, q] of Object.entries(qty)) o[s] = q * (await getKv('px:' + s, 0));
+      setPx(o);
     })();
   }, [trades.length]);
+  const value = Object.values(px).reduce((s, v) => s + v, 0);
   const growth = invested > 0 ? ((value - invested) / invested) * 100 : null;
+  const donut = useMemo(() => {
+    const by: Record<string, number> = {};
+    Object.entries(px).forEach(([s, v]) => (by[cls(s)] = (by[cls(s)] || 0) + v));
+    const tot = Object.values(by).reduce((s, v) => s + v, 0);
+    return Object.entries(by).map(([k, v]) => ({ name: k, value: v, pct: tot ? Math.round((v / tot) * 100) : 0 })).filter(d => d.value > 0);
+  }, [px]);
 
-  // ── grafik area 30 hari BTC interaktif (hover/tap) ──
+  // grafik 30 hari
   const pts = useMemo(() => m30.length > 1
     ? m30.map((v, i) => [(i / (m30.length - 1)) * 100, 34 - ((v - Math.min(...m30)) / (Math.max(...m30) - Math.min(...m30) || 1)) * 30])
     : [], [m30]);
   const line = pts.map(p => p.map(n => +n.toFixed(2)).join(',')).join(' ');
 
-  // tren pengeluaran 7 hari terakhir (mini bar)
+  // pengeluaran 7 hari
   const days7 = useMemo(() => {
     const arr: number[] = [];
     for (let i = 6; i >= 0; i--) {
@@ -82,95 +99,217 @@ export default function Home({ go }: { go: (t: string) => void }) {
     return arr;
   }, [txs.length]);
   const spendMax = Math.max(...days7, 1);
-  const weekOut = days7.reduce((s, v) => s + v, 0);
-
   const mask = (s: string) => hide ? '••••••' : s;
+  const heroLabel = theme === 'gold' ? 'Total Kekayaan' : theme === 'light' ? 'Total Keuangan' : 'Total Aset';
 
+  const HeroTitle = (
+    <div className="heroTop">
+      <div>
+        <div className="mute">{heroLabel}</div>
+        <div className="big">{mask(idr(bal))}</div>
+        {growth !== null && <div className={'chip ' + (growth >= 0 ? 'pos' : 'neg')}>▲ {growth >= 0 ? '+' : ''}{growth.toFixed(1)}%</div>}
+      </div>
+      <button className="eye" onClick={e => { e.stopPropagation(); setHide(!hide); }}>{hide ? '🙈' : '👁️'}</button>
+    </div>
+  );
+
+  const HeroChart = pts.length > 1 && (
+    <svg className="spark" viewBox="0 0 100 36" preserveAspectRatio="none"
+      onMouseMove={e => {
+        const r = (e.currentTarget as SVGElement).getBoundingClientRect();
+        setHi(Math.min(m30.length - 1, Math.max(0, Math.round(((e.clientX - r.left) / r.width) * (m30.length - 1)))));
+      }}
+      onMouseLeave={() => setHi(-1)}>
+      <defs>
+        <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="currentColor" stopOpacity=".35" />
+          <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon points={`0,36 ${line} 100,36`} fill="url(#hg)" />
+      <polyline points={line} fill="none" stroke="currentColor" strokeWidth="1.4" />
+      {hi >= 0 && <>
+        <line x1={pts[hi][0]} y1="0" x2={pts[hi][0]} y2="36" stroke="currentColor" strokeWidth=".3" opacity=".6" />
+        <circle cx={pts[hi][0]} cy={pts[hi][1]} r="1.6" fill="currentColor" />
+      </>}
+    </svg>
+  );
+
+  const QuickRow = ({ short }: { short?: boolean }) => (
+    <div className="quick">
+      {QUICK.map(q => (
+        <button key={q.go} className="tile" onClick={() => go(q.go)}>
+          <span className="ticon" style={{ background: q.c + '22', color: q.c }}>{q.icon}</span>
+          <span className="tlabel">{short ? q.short : q.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+
+  /* ═══ CYBER: kartu market 3 kolom + quick access grid ═══ */
+  if (theme === 'cyber') {
+    return (
+      <>
+        <section className="hero">
+          <div className="mute">Welcome Back, 👑</div>
+          <div className="big" style={{ fontSize: 24 }}>{name}!</div>
+          <div className="tag" style={{ color: 'inherit', opacity: .8 }}>Dream Big, Invest Bigger</div>
+          {HeroTitle}
+          {HeroChart}
+          {growth !== null && <div className="chip">↗ {growth >= 0 ? '+' : ''}{growth.toFixed(1)}%</div>}
+        </section>
+        <QuickRow short />
+        <section>
+          <h2>Market Overview</h2>
+          <div className="cyberGrid">
+            {MKT.slice(0, 3).map(info => {
+              const t = mkt.find(x => x.sym === info.sym);
+              return (
+                <div className="ccard" key={info.sym}>
+                  <span className="mcoin" style={{ background: info.c + '22', color: info.c }}>{info.icon}</span>
+                  <b>{info.t}</b>
+                  <span className="tag">{t ? kFmt(t.price) : '…'}</span>
+                  <span className={'pill ' + ((t?.chg ?? 0) >= 0 ? 'pos' : 'neg')}>{t ? (t.chg >= 0 ? '▲ +' : '▼ ') + t.chg.toFixed(1) + '%' : ''}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+        <section>
+          <h2>Quick Access</h2>
+          <div className="g2">
+            <button className="btn alt" onClick={() => go('tugas')}>📅 Kalender</button>
+            <button className="btn alt" onClick={() => go('ai')}>🤖 Analisis AI</button>
+            <button className="btn alt" onClick={() => go('uang')}>💸 Keuangan</button>
+            <button className="btn alt" onClick={() => go('dca')}>📊 Portofolio</button>
+          </div>
+        </section>
+      </>
+    );
+  }
+
+  /* ═══ GOLD: pertumbuhan + pill rentang + kalender + banner DCA ═══ */
+  if (theme === 'gold') {
+    const d = new Date();
+    return (
+      <>
+        <section className="hero">
+          {HeroTitle}
+          {HeroChart}
+          {growth === null && <div className="chip">Bulan ini: <span className="pos">+{idr(inc)}</span> · <span className="neg">-{idr(out)}</span></div>}
+        </section>
+        <QuickRow short />
+        <section>
+          <h2>Pertumbuhan Portofolio</h2>
+          {value > 0 && growth !== null ? <div className="big pos">+{growth.toFixed(1)}%</div> : <div className="mute">Belum ada portofolio aktif.</div>}
+          <div className="tag">Nilai kini {idr(value)} dari modal {idr(invested)}</div>
+          <div className="pills">
+            {['1D', '1W', '1M', '3M', '1Y'].map(p => <span key={p} className={'tpill' + (p === '1M' ? ' on' : '')}>{p}</span>)}
+          </div>
+          <div className="minibar" style={{ height: 44 }}>
+            {days7.map((v, i) => <i key={i} style={{ height: v > 0 ? Math.max(8, (v / spendMax) * 100) + '%' : '4px', opacity: v > 0 ? 1 : .3 }} className={i === 6 ? 'now' : ''} />)}
+          </div>
+        </section>
+        <section onClick={() => go('tugas')}>
+          <h2>Kalender & To Do</h2>
+          <div className="dateblock">
+            <b>{d.getDate()}</b>
+            <span>{d.toLocaleDateString('id-ID', { month: 'short' })}</span>
+            <span>{d.toLocaleDateString('id-ID', { weekday: 'short' })}</span>
+          </div>
+          {todays.length === 0 && doneToday.length === 0 ? <div className="mute">Tidak ada agenda hari ini.</div>
+            : [...todays.slice(0, 3).map(t => ({ id: t.id, title: t.title, time: t.time, done: false })),
+               ...doneToday.slice(0, 2).map(t => ({ id: t.id, title: t.title, time: t.time, done: true }))]
+              .map(t => (
+                <div className="row" key={t.id}><span><span className={'abox' + (t.done ? ' ok' : '')}>{t.done ? '✓' : ''}</span>{t.title}</span><span className="mute">{t.time}</span></div>
+              ))}
+        </section>
+        <section className="banner" onClick={() => go('dca')}>
+          <div>⭐ <b>Investasi DCA Otomatis</b><div className="tag">Bangun aset masa depan, setiap hari!</div></div>
+          <span className="chev">›</span>
+        </section>
+      </>
+    );
+  }
+
+  /* ═══ DARK PRO & LIGHT: donut portofolio + ringkasan 3 stat ═══ */
   return (
     <>
-      {/* Kartu hero: total aset + grafik 30 hari + pertumbuhan */}
-      <section className="hero" onClick={() => go('uang')}>
-        <div className="heroTop">
+      {theme === 'light' && (
+        <div className="hello">
           <div>
-            <div className="mute">Halo, {name} 👋</div>
-            <div className="big">{mask(idr(bal))}</div>
+            <b>Halo, {name} 👋</b>
+            <div className="tag">Semangat hari ini!</div>
           </div>
-          <button className="eye" onClick={e => { e.stopPropagation(); setHide(!hide); }}>{hide ? '🙈' : '👁️'}</button>
+          <div className="wchip">☀️ 28°C · Denpasar</div>
         </div>
-        {pts.length > 1 && (
-          <svg className="spark" viewBox="0 0 100 36" preserveAspectRatio="none"
-            onMouseMove={e => {
-              const r = (e.currentTarget as SVGElement).getBoundingClientRect();
-              setHi(Math.min(m30.length - 1, Math.max(0, Math.round(((e.clientX - r.left) / r.width) * (m30.length - 1)))));
-            }}
-            onMouseLeave={() => setHi(-1)}>
-            <defs>
-              <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="currentColor" stopOpacity=".35" />
-                <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <polygon points={`0,36 ${line} 100,36`} fill="url(#hg)" />
-            <polyline points={line} fill="none" stroke="currentColor" strokeWidth="1.4" />
-            {hi >= 0 && <>
-              <line x1={pts[hi][0]} y1="0" x2={pts[hi][0]} y2="36" stroke="currentColor" strokeWidth=".3" opacity=".6" />
-              <circle cx={pts[hi][0]} cy={pts[hi][1]} r="1.6" fill="currentColor" />
-            </>}
-          </svg>
-        )}
-        {hi >= 0 && m30[hi] != null && <div className="heroTip">BTC · {m30.length - hi - 1} hari lalu: USD {Math.round(m30[hi]).toLocaleString('en-US')}</div>}
-        {growth !== null ? (
-          <div className="chip">▲ {growth >= 0 ? '+' : ''}{growth.toFixed(1)}% · modal {mask(idr(invested))}</div>
-        ) : (
-          <div className="chip">Bulan ini: <span className="pos">+{idr(inc)}</span> · <span className="neg">-{idr(out)}</span></div>
-        )}
+      )}
+      <section className="hero">
+        {HeroTitle}
+        {HeroChart}
+        {growth === null && <div className="chip">Bulan ini: <span className="pos">+{idr(inc)}</span> · <span className="neg">-{idr(out)}</span></div>}
       </section>
 
-      {/* 4 aksi cepat */}
-      <div className="quick">
-        {QUICK.map(q => (
-          <button key={q.go} className="tile" onClick={() => go(q.go)}>
-            <span className="ticon" style={{ background: q.c + '22', color: q.c }}>{q.icon}</span>
-            <span className="tlabel">{q.label}</span>
-          </button>
-        ))}
-      </div>
+      <QuickRow />
 
-      {/* Ringkasan: bulan ini + mini bar 7 hari */}
-      <div className="stats">
-        <div className="stat"><span className="mute">Pemasukan bulan ini</span><b className="pos">+{idr(inc)}</b></div>
-        <div className="stat">
-          <span className="mute">Pengeluaran 7 hari</span>
-          <b className="neg">-{idr(weekOut)}</b>
-          <div className="minibar">
-            {days7.map((v, i) => <i key={i} style={{ height: v > 0 ? Math.max(8, (v / spendMax) * 100) + '%' : '4px', opacity: v > 0 ? 1 : .35 }} className={i === 6 ? 'now' : ''} />)}
-          </div>
-        </div>
-      </div>
-
-      {/* Agenda hari ini */}
-      <section onClick={() => go('tugas')}>
-        <h2>Hari ini</h2>
-        {todays.length === 0 ? <div className="mute">Tidak ada agenda. Ketuk untuk menambah.</div>
-          : todays.map(t => (
-            <div className="row" key={t.id}>
-              <span><span className="adot" />{t.title}</span>
-              <span className="mute">{t.time}</span>
-            </div>
-          ))}
-      </section>
-
-      {/* Harga pasar live */}
       <section>
-        <h2>Pasar</h2>
+        <h2>Ringkasan Hari Ini</h2>
+        <div className="stats three">
+          <div className="stat"><b className="pos">+{idr(inc)}</b><span className="mute">Pemasukan</span></div>
+          <div className="stat"><b className="neg">-{idr(out)}</b><span className="mute">Pengeluaran</span></div>
+          <div className="stat"><b className={net >= 0 ? 'pos' : 'neg'}>{net >= 0 ? '+' : '-'}{idr(Math.abs(net))}</b><span className="mute">Saldo Bersih</span></div>
+        </div>
+        <div className="minibar">
+          {days7.map((v, i) => <i key={i} style={{ height: v > 0 ? Math.max(8, (v / spendMax) * 100) + '%' : '4px', opacity: v > 0 ? 1 : .3 }} className={i === 6 ? 'now' : ''} />)}
+        </div>
+      </section>
+
+      <section onClick={() => go('dca')}>
+        <h2>Portofolio Investasi</h2>
+        {donut.length === 0 ? <div className="mute">Belum ada investasi. Mulai rencana DCA pertama.</div> : (
+          <div className="donutWrap">
+            <PieChart width={150} height={140}>
+              <Pie data={donut} dataKey="value" nameKey="name" outerRadius={62} innerRadius={34} paddingAngle={3} strokeWidth={0}>
+                {donut.map((d, i) => <Cell key={i} fill={DONUT_C[d.name] || '#888'} />)}
+              </Pie>
+            </PieChart>
+            <div className="legend">
+              {growth !== null && <div className="big pos">+{growth.toFixed(1)}%</div>}
+              <div className="tag">7 hari · nilai {idr(value)}</div>
+              {donut.map(d => (
+                <div className="lgrow" key={d.name}><span className="ldot" style={{ background: DONUT_C[d.name] }} />{d.name} <b>{d.pct}%</b></div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section onClick={() => go('tugas')}>
+        <h2>To Do Hari Ini {doneToday.length}/{todays.length + doneToday.length}</h2>
+        {todays.length === 0 && doneToday.length === 0 ? <div className="mute">Tidak ada agenda. Ketuk untuk menambah.</div>
+          : [...todays.slice(0, 4).map(t => ({ id: t.id, title: t.title, time: t.time, done: false })),
+             ...doneToday.slice(0, 2).map(t => ({ id: t.id, title: t.title, time: t.time, done: true }))]
+            .map(t => (
+              <div className="row" key={t.id}>
+                <span><span className={'abox' + (t.done ? ' ok' : '')}>{t.done ? '✓' : ''}</span>{t.title}</span>
+                <span className="mute">{t.time}</span>
+              </div>
+            ))}
+      </section>
+
+      <section>
+        <h2>Harga Pasar</h2>
         {mkt.length === 0 && <div className="mute">Memuat harga pasar…</div>}
-        {mkt.map(t => {
+        {mkt.slice(0, theme === 'light' ? 2 : 4).map(t => {
           const info = MKT.find(x => x.sym === t.sym)!;
           return (
             <div className="row mkt" key={t.sym}>
               <span className="mcoin" style={{ background: info.c + '22', color: info.c }}>{info.icon}</span>
-              <div style={{ flex: 1 }}><div>{info.label}</div><div className="tag">USD {t.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}</div></div>
-              <span className={'pill ' + (t.chg >= 0 ? 'pos' : 'neg')}>{t.chg >= 0 ? '+' : ''}{t.chg.toFixed(1)}%</span>
+              <div style={{ flex: 1 }}><div>{info.label}</div><div className="tag">{info.t} · USD</div></div>
+              <div style={{ textAlign: 'right' }}>
+                <b>{t.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}</b>
+                <div className={'tag ' + (t.chg >= 0 ? 'pos' : 'neg')}>{t.chg >= 0 ? '▲ +' : '▼ '}{t.chg.toFixed(1)}%</div>
+              </div>
             </div>
           );
         })}
