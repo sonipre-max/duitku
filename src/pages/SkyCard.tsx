@@ -1,11 +1,20 @@
 import { greeting, mood, useClock, useSky } from '../sky';
+import { useEffect } from 'react';
+import { applyWallpaper, setTimeOfDay, wallOn } from '../theme';
 
 // Animasi langit: matahari/awan/bulan+bintang, murni CSS
 export default function SkyCard() {
   const sky = useSky();
   const clock = useClock(sky && sky.tzOffset !== 0 ? sky.tzOffset : undefined);
+  const night = !!sky && sky.period === 'malam';
+
+  // wallpaper day/night mengikuti waktu
+  useEffect(() => {
+    if (wallOn()) applyWallpaper(true);
+    if (sky) setTimeOfDay(night);
+  }, [night, sky]);
+
   if (!sky) return null;
-  const night = sky.period === 'malam';
   const rain = sky.weather === 'hujan';
   const cloudy = sky.weather === 'berawan' || sky.weather === 'malam-berawan';
   const hhmm = `${String(clock.getHours()).padStart(2, '0')}.${String(clock.getMinutes()).padStart(2, '0')}`;

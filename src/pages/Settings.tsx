@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { db, TABLES } from '../db';
 import { loadCfg, saveCfg } from '../ai';
 import { saveFile } from '../util';
-import { THEMES, getTheme, setTheme, ThemeId } from '../theme';
+import { THEMES, getTheme, setTheme, applyWallpaper, wallOn, ThemeId } from '../theme';
 
 const sha = async (s: string) =>
   [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(b => b.toString(16).padStart(2, '0')).join('');
 
 export default function Settings() {
-  const [c, setC] = useState(loadCfg());
+  const [c, setC] = useState<Cfg>(loadCfg());
+  const [wp, setWp] = useState(wallOn());
   const [pin, setPin] = useState('');
   const [msg, setMsg] = useState('');
   const [theme, setT] = useState<ThemeId>(getTheme());
@@ -62,6 +63,10 @@ export default function Settings() {
         </div>
         <input inputMode="numeric" value={c.tzOffset ?? ''} onChange={e => set({ tzOffset: e.target.value === '' ? undefined : +e.target.value })} placeholder="Offset zona waktu menit (mis. 420 = WIB). Kosong = ikut perangkat" />
         <div className="tag">Cuaca dari open-meteo (gratis, tanpa key). Cari latitude/longitude kotamu di latlong.net. Contoh: Jakarta -6.2 / 106.8, Denpasar -8.65 / 115.22.</div>
+        <label className="row">
+          <span>Gunakan wallpaper anime (siang/malam otomatis)</span>
+          <input type="checkbox" checked={wp} onChange={e => { setWp(e.target.checked); applyWallpaper(e.target.checked); }} />
+        </label>
       </section>
       <section>
         <h2>Model AI</h2>

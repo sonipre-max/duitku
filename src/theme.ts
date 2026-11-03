@@ -19,6 +19,23 @@ export const setTheme = (t: ThemeId) => {
   document.documentElement.setAttribute('data-theme', t);
   window.dispatchEvent(new CustomEvent('themechange', { detail: t }));
 };
+
+// wallpaper: pasang <div class="wpbg"> + body.wp, ganti day/night sesuai jam
+export function applyWallpaper(on: boolean) {
+  localStorage.setItem('wp', on ? '1' : '0');
+  const el = document.querySelector('.wpbg') as HTMLDivElement | null;
+  if (on && !el) {
+    const d = document.createElement('div');
+    d.className = 'wpbg';
+    document.body.appendChild(d);
+  }
+  if (!on && el) el.remove();
+  document.body.classList.toggle('wp', on);
+}
+export const wallOn = () => localStorage.getItem('wp') === '1';
+export const setTimeOfDay = (night: boolean) => {
+  document.documentElement.setAttribute('data-time', night ? 'night' : 'day');
+};
 export const useTheme = (): ThemeId => {
   const [t, setT] = useState<ThemeId>(getTheme());
   useEffect(() => {

@@ -57,7 +57,7 @@ body{
 }
 /* ── Latar aurora 3D: orb cahaya berlapis di belakang kaca ── */
 body::before{
-  content:""; position:fixed; inset:-20%; z-index:-1; pointer-events:none;
+  content:""; position:fixed; inset:-20%; z-index:-2; pointer-events:none;
   background:
     radial-gradient(38% 38% at 18% 12%, var(--orb1), transparent 70%),
     radial-gradient(42% 42% at 85% 22%, var(--orb2), transparent 70%),
@@ -69,6 +69,19 @@ body::after{
   content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
   background:radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(0,0,0,.18));
 }
+/* ── Wallpaper user (siang/malam otomatis) di belakang semuanya ── */
+body.wp::before{display:block}
+body.wp .wpbg{
+  position:fixed; inset:0; z-index:-3; pointer-events:none;
+  background-size:cover; background-position:center;
+  transition:opacity 1s ease, filter 1s ease;
+}
+body.wp .wpbg::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(0,0,0,.14), rgba(0,0,0,.38));
+}
+body.wp[data-time='night'] .wpbg{background-image:url(/night.jpg);opacity:.9}
+body.wp[data-time='day'] .wpbg{background-image:url(/day.jpg);opacity:.9}
 @keyframes drift{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(2%,2%,0) scale(1.06)}}
 @media (prefers-reduced-motion:reduce){body::before{animation:none}}
 /* scrollbar halus, bukan scrollbar OS kotak-kotak */
