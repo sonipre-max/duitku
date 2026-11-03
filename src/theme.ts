@@ -33,11 +33,14 @@ export function applyWallpaper(on: boolean) {
   if (!on && el) el.remove();
   document.body.classList.toggle('wp', on);
   document.documentElement.classList.toggle('wp', on);
-  if (on && el && !el.src) el.src = './day.jpg';
+  if (on && el && !el.src) el.src = document.documentElement.getAttribute('data-time') === 'night' ? './night.jpg' : './day.jpg';
 }
 export const wallOn = () => localStorage.getItem('wp') !== '0'; // default: AKTIF
 export const setTimeOfDay = (night: boolean) => {
   document.documentElement.setAttribute('data-time', night ? 'night' : 'day');
+  // swap juga src wallpaper full-bleed
+  const img = document.querySelector('.wpbg') as HTMLImageElement | null;
+  if (img) img.src = night ? './night.jpg' : './day.jpg';
 };
 export const useTheme = (): ThemeId => {
   const [t, setT] = useState<ThemeId>(getTheme());
