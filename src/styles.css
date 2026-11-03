@@ -553,4 +553,46 @@ html[data-time='night'] .sheet input,html[data-time='night'] .sheet select{backg
   box-shadow:0 10px 26px -8px var(--ac),0 4px 12px rgba(0,0,0,.25);transition:transform .15s}
 .fab:active{transform:scale(.9) rotate(90deg)}
 
+/* ── To Do ala Todoist/Things ── */
+.tdHero{display:flex;align-items:center;gap:14px}
+.tdRing{position:relative;width:64px;height:64px;flex-shrink:0}
+.tdPct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
+.tdHeroTxt{flex:1;min-width:0}
+.tdHeroTxt b{font-size:15px;display:block}
+.tdHeroTxt span{font-size:12px}
+.tdRow{display:flex;align-items:center;gap:10px;padding:10px 2px}
+.tdRow+.tdRow{border-top:1px solid var(--line)}
+.tdCheck{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s}
+.tdCheck.ok{background:var(--pos);border-color:var(--pos);box-shadow:0 0 10px -2px var(--pos)}
+.tdTxt{flex:1;min-width:0;font-size:14px;font-weight:600}
+.tdTxt.done{text-decoration:line-through;opacity:.55}
+.tdEmpty{display:flex;align-items:center;gap:12px;opacity:.75;padding:8px 0}
+.tdEmpty b{display:block;font-size:14px}
+.tdEmpty span{font-size:12px;color:var(--mute)}
+
+/* ── Invest ala Wealthfolio ── */
+.heroCard{text-align:center;padding:22px 18px}
+.pillSm{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--soft)}
+
+/* ── AI ala Lobe Chat ── */
+.modeSeg{display:flex;gap:6px;background:var(--sf);border:1px solid var(--line);border-radius:99px;padding:4px;margin-bottom:12px;backdrop-filter:blur(14px)}
+.modeSeg button{flex:1;border:none;background:transparent;color:var(--mute);font-size:13px;font-weight:700;padding:8px 0;border-radius:99px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
+.modeSeg button.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;box-shadow:0 4px 12px -4px var(--ac)}
+.chatWrap{display:flex;flex-direction:column;gap:10px;min-height:120px;margin-bottom:12px}
+.chatRow{display:flex;gap:8px;align-items:flex-end}
+.chatRow.user{justify-content:flex-end}
+.chatAva{width:30px;height:30px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chatEmpty{text-align:center;padding:18px 10px;opacity:.85}
+.chatEmpty b{display:block;font-size:15px;margin:6px 0 2px}
+.chatEmpty span{font-size:12px;color:var(--mute)}
+.msg{max-width:82%;padding:10px 14px;border-radius:16px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.msg.user{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border-bottom-right-radius:6px;box-shadow:0 4px 14px -6px var(--ac)}
+.msg.assistant{background:var(--sf);border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:6px;backdrop-filter:blur(14px)}
+.msg.typing{display:flex;gap:4px;padding:13px 16px}
+.msg.typing i{width:7px;height:7px;border-radius:50%;background:var(--mute);animation:tyblink 1.2s infinite}
+.msg.typing i:nth-child(2){animation-delay:.2s}.msg.typing i:nth-child(3){animation-delay:.4s}
+@keyframes tyblink{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+.chatInput{display:flex;gap:8px;align-items:flex-end}
+.chatInput textarea{flex:1}
+
 .loading { text-align: center; padding: 40px 0; opacity: .5; }

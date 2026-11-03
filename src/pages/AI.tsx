@@ -3,6 +3,7 @@ import { ask, loadCfg, Msg } from '../ai';
 import { db } from '../db';
 import { schedule } from '../notif';
 import { today } from '../util';
+import { Ic, Deco } from '../icons';
 
 async function context() {
   const m = today().slice(0, 7);
@@ -18,16 +19,22 @@ async function context() {
   return `Data pengguna bulan ${m}: pemasukan Rp${i}, pengeluaran Rp${o}, per kategori ${JSON.stringify(by)}. Rekening: ${acc}. Total dibelanjakan untuk simulasi DCA sejauh ini: Rp${inv}. Tugas terbuka: ${open.join('; ') || '-'}. Jawab pertanyaan tentang angka-angka ini dengan hitungan yang benar.`;
 }
 
+// Terinspirasi Lobe Chat: bubble chat, quick prompts, indikator mengetik
 export default function AI() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState('');
   const [mode, setMode] = useState<'chat' | 'task'>('chat');
   const [busy, setBusy] = useState(false);
 
-  const send = async () => {
-    if (!text.trim() || busy) return;
+  const QUICK = mode === 'task'
+    ? ['Bayar listrik 5 November jam 19:00', 'Gym tiap hari jam 6 sore', 'Meeting besok jam 10 pagi']
+    : ['Ringkas pengeluaran bulan ini', 'Kategori apa paling boros?', 'Sisa uang aman gak sampai akhir bulan?'];
+
+  const send = async (preset?: string) => {
+    const val = (preset ?? text).trim();
+    if (!val || busy) return;
     const cfg = loadCfg();
-    const next: Msg[] = [...msgs, { role: 'user', content: text }];
+    const next: Msg[] = [...msgs, { role: 'user', content: val }];
     setMsgs(next); setText(''); setBusy(true);
     try {
       if (mode === 'task') {
@@ -62,17 +69,39 @@ export default function AI() {
 
   return (
     <>
-      <section>
-        <div className="g2">
-          <button className={'btn' + (mode === 'chat' ? '' : ' alt')} onClick={() => setMode('chat')}>Tanya AI</button>
-          <button className={'btn' + (mode === 'task' ? '' : ' alt')} onClick={() => setMode('task')}>Buat tugas</button>
-        </div>
-        <div className="tag">{mode === 'task' ? 'Contoh: ingatkan bayar listrik tiap tanggal 5 jam 9 pagi' : 'AI butuh internet dan API key (Setelan).'}</div>
-        {msgs.length === 0 && <div className="mute" style={{ marginTop: 8 }}>Tanyakan sesuatu, mis. "Ringkas pengeluaran bulan ini" (aktifkan kirim data di Setelan).</div>}
-        {msgs.map((m, i) => <div key={i} className={'msg ' + m.role}>{m.content}</div>)}
-        {busy && <div className="mute">Memproses…</div>}
-        <textarea rows={3} value={text} onChange={e => setText(e.target.value)} placeholder={mode === 'task' ? 'Tulis tugasnya…' : 'Tulis pertanyaan…'} />
-        <button className="btn" onClick={send} disabled={busy}>Kirim</button>
+      <div className="modeSeg">
+        <button className={mode === 'chat' ? 'on' : ''} onClick={() => setMode('chat')}><Ic.ai size={15} style={{ verticalAlign: '-2px' }} /> Tanya AI</button>
+        <button className={mode === 'task' ? 'on' : ''} onClick={() => setMode('task')}><Ic.todo size={15} style={{ verticalAlign: '-2px' }} /> Buat tugas</button>
+      </div>
+
+      <section className="chatWrap">
+        {msgs.length === 0 && (
+          <div className="chatEmpty">
+            <Deco.avatar width={44} />
+            <b>{mode === 'task' ? 'Mau diingetin apa, Bos?' : 'Tanya apa saja soal uang & hari lo, Bos!'}</b>
+            <span>AI butuh internet dan API key (Setelan){mode === 'chat' ? ' — aktifkan kirim data di Setelan biar bisa baca angka lo.' : '.'}</span>
+          </div>
+        )}
+        {msgs.map((m, i) => (
+          <div key={i} className={'chatRow ' + m.role}>
+            {m.role === 'assistant' && <span className="chatAva"><Deco.avatar width={26} /></span>}
+            <div className={'msg ' + m.role}>{m.content}</div>
+          </div>
+        ))}
+        {busy && (
+          <div className="chatRow assistant"><span className="chatAva"><Deco.avatar width={26} /></span>
+            <div className="msg assistant typing"><i /><i /><i /></div>
+          </div>
+        )}
+      </section>
+
+      <div className="chipWrap" style={{ marginBottom: 10 }}>
+        {QUICK.map(q => <button key={q} className="chip" onClick={() => send(q)}>{q}</button>)}
+      </div>
+
+      <section className="chatInput">
+        <textarea rows={2} value={text} onChange={e => setText(e.target.value)} placeholder={mode === 'task' ? 'Tulis tugasnya…' : 'Tulis pertanyaan…'} />
+        <button className="btn" style={{ width: 'auto', padding: '0 18px' }} onClick={() => send()} disabled={busy}><Ic.arrow size={18} /></button>
       </section>
     </>
   );
