@@ -145,6 +145,12 @@ export default function Home({ go }: { go: (t: string) => void }) {
     </svg>
   );
 
+  const tipDate = hi >= 0 && m30.length ? (() => {
+    const d = new Date(); d.setDate(d.getDate() - (m30.length - 1 - hi));
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+  })() : '';
+  const tipPrice = hi >= 0 ? '$' + m30[hi].toLocaleString('en-US', { maximumFractionDigits: 0 }) : '';
+
   const QuickRow = ({ short }: { short?: boolean }) => (
     <div className="quick">
       {QUICK.map(q => (
@@ -166,6 +172,7 @@ export default function Home({ go }: { go: (t: string) => void }) {
           <div className="tag" style={{ color: 'inherit', opacity: .8 }}>Dream Big, Invest Bigger</div>
           {HeroTitle}
           {HeroChart}
+          {hi >= 0 && <div className="sparkTip" style={{ left: pts[hi][0] + '%' }}>{tipPrice} · {tipDate}</div>}
           {growth !== null && <div className="chip">↗ {growth >= 0 ? '+' : ''}{growth.toFixed(1)}%</div>}
         </section>
         <QuickRow short />
@@ -206,6 +213,7 @@ export default function Home({ go }: { go: (t: string) => void }) {
         <section className="hero">
           {HeroTitle}
           {HeroChart}
+          {hi >= 0 && <div className="sparkTip" style={{ left: pts[hi][0] + '%' }}>{tipPrice} · {tipDate}</div>}
           {growth === null && <div className="chip">Bulan ini: <span className="pos">+{idr(inc)}</span> · <span className="neg">-{idr(out)}</span></div>}
         </section>
         <QuickRow short />
@@ -257,10 +265,11 @@ export default function Home({ go }: { go: (t: string) => void }) {
       <section className="hero">
         {HeroTitle}
         {HeroChart}
+        {hi >= 0 && <div className="sparkTip" style={{ left: pts[hi][0] + '%' }}>{tipPrice} · {tipDate}</div>}
         {growth === null && <div className="chip">Bulan ini: <span className="pos">+{idr(inc)}</span> · <span className="neg">-{idr(out)}</span></div>}
-      </section>
+        </section>
 
-      <QuickRow />
+        <QuickRow />
 
       <section>
         <h2>Ringkasan Hari Ini</h2>
