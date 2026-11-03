@@ -21,6 +21,9 @@ export default function SkyCard() {
   const tasksToday = useLiveQuery(() => db.tasks.where('date').equals(today()).toArray(), []) || [];
   const accounts = useLiveQuery(() => db.accounts.toArray(), []) || [];
   const plans = useLiveQuery(() => db.plans.toArray(), []) || [];
+  const yest = new Date(); yest.setDate(yest.getDate() - 1);
+  const ymd = (d: Date) => d.toISOString().slice(0, 10);
+  const yestTxs = useYestTxs(ymd(yest));
 
   if (!sky) return null;
   const rain = sky.weather === 'hujan';
@@ -31,10 +34,7 @@ export default function SkyCard() {
   const spent = dayTxs.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
   const doneN = tasksToday.filter(t => t.done).length;
 
-  // % perubahan vs kemarin (pengeluaran & saldo), tugas sederhana
-  const yest = new Date(); yest.setDate(yest.getDate() - 1);
-  const ymd = (d: Date) => d.toISOString().slice(0, 10);
-  const yestTxs = useYestTxs(ymd(yest));
+  // % perubahan vs kemarin (pengeluaran & saldo)
   const spentY = yestTxs.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
   const spentPct = spentY > 0 ? ((spent - spentY) / spentY * 100) : 0;
   const saldoY = saldo - dayTxs.reduce((s, t) => s + (t.type === 'in' ? t.amount : -t.amount), 0);
