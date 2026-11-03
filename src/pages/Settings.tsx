@@ -67,6 +67,7 @@ export default function Settings() {
           <span>Gunakan wallpaper anime (siang/malam otomatis)</span>
           <input type="checkbox" checked={wp} onChange={e => { setWp(e.target.checked); applyWallpaper(e.target.checked); }} />
         </label>
+        <div className="tag">Wallpaper tampil sebagai latar belakang seluruh app — kartu-kartu kaca di atasnya. Aktif secara default.</div>
       </section>
       <section>
         <h2>Model AI</h2>

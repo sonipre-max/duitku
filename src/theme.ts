@@ -35,7 +35,7 @@ export function applyWallpaper(on: boolean) {
   document.documentElement.classList.toggle('wp', on);
   if (on && el && !el.src) el.src = './day.jpg';
 }
-export const wallOn = () => localStorage.getItem('wp') === '1';
+export const wallOn = () => localStorage.getItem('wp') !== '0'; // default: AKTIF
 export const setTimeOfDay = (night: boolean) => {
   document.documentElement.setAttribute('data-time', night ? 'night' : 'day');
 };
