@@ -446,7 +446,7 @@ html[data-time='night'] section h2,html[data-time='night'] section .row,html[dat
 
 /* ── Agenda hari ini: swipe antar hari + countdown + agenda lewat ── */
 .homeCol{display:flex;flex-direction:column;min-height:100%}
-.homeCol .mottoBanner{margin-top:auto} /* dorong konten ke bawah — space lega di bawah jam+cuaca */
+.homeCol .quickSum{margin-top:auto} /* dorong semua konten (ringkasan, agenda, banner) ke bawah — space lega di bawah jam+cuaca */
 .agendaCard{margin-bottom:12px}
 .agTitle{flex:1;display:flex;flex-direction:column;min-width:0}
 .agTitle b{font-size:14.5px}
