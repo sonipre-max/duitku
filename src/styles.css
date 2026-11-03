@@ -71,10 +71,12 @@ body::after{
 }
 /* ── Wallpaper user (siang/malam otomatis) di belakang semuanya ── */
 body.wp .wpbg{
-  position:fixed; inset:0; z-index:-3; pointer-events:none;
+  position:fixed; inset:0; z-index:0; pointer-events:none;
   background-size:cover; background-position:center;
   transition:opacity 1s ease, filter 1s ease;
 }
+body.wp #root{position:relative;z-index:1}
+nav{z-index:50}
 body.wp .wpbg::after{
   content:""; position:absolute; inset:0;
   background:linear-gradient(180deg, rgba(0,0,0,.14), rgba(0,0,0,.38));
