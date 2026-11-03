@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Cell, Pie, PieChart, Tooltip } from 'recharts';
 import { db } from '../db';
 import { idr, num, saveFile, today } from '../util';
+import HomeExtra from './HomeExtra';
 
 const OUT = ['Makan', 'Transport', 'Belanja', 'Tagihan', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Lainnya'];
 const IN = ['Gaji', 'Bonus', 'Usaha', 'Investasi', 'Lainnya'];
@@ -42,6 +43,7 @@ export default function Finance() {
 
   return (
     <>
+      <HomeExtra go={() => {}} theme="light" />
       <section>
         <h2>Rekening</h2>
         {accounts.map(a => <div className="row" key={a.id}><span>{a.name}</span><b>{idr(bal(a.id!))}</b></div>)}

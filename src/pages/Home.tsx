@@ -252,11 +252,10 @@ export default function Home({ go }: { go: (t: string) => void }) {
     );
   }
 
-  /* ═══ DARK PRO & LIGHT: dashboard ringkas ═══ */
+  /* ═══ DARK PRO & LIGHT: dashboard ringkas — konten lain di tab Keuangan ═══ */
   return (
     <>
       <SkyCard go={go} />
-      <HomeExtra go={go} theme={theme} />
     </>
   );
 }
