@@ -1,43 +1,50 @@
-/* ═══════════ DuitKu — 4 tema ═══════════
-   Setiap tema mendefinisikan: bg, sf (kartu), ink, mute, line, ac (aksen),
-   ac2 (aksen kedua), acf, soft (latar lembut), pos/neg, hero (gradasi),
-   radius — plus dekorasi khusus via [data-theme] selector. */
+/* ═══════════ DuitKu — 4 tema (glass 3D) ═══════════
+   Kartu memakai kaca transparan (backdrop blur + highlight tepi + shadow
+   berlapis) di atas latar aurora berlapis. Setiap tema hanya mengganti warna. */
 
 /* ── Clean Light (default) ── */
 :root, [data-theme='light']{
-  --bg:#f4f6fb; --sf:#ffffff; --ink:#0f172a; --mute:#64748b; --line:#e2e8f0;
-  --ac:#2563eb; --ac2:#3b82f6; --acf:#ffffff; --soft:#eff4ff;
+  --bg:#eef2fb; --sf:rgba(255,255,255,.62); --ink:#0f172a; --mute:#5c6b82; --line:rgba(15,23,42,.08);
+  --ac:#2563eb; --ac2:#3b82f6; --acf:#ffffff; --soft:rgba(37,99,235,.12);
   --pos:#16a34a; --neg:#dc2626;
-  --shadow:0 1px 2px rgba(15,23,42,.06),0 10px 28px -14px rgba(15,23,42,.18);
-  --hero:linear-gradient(135deg,#2563eb,#3b82f6);
-  --radius:18px;
+  --glass-hi:rgba(255,255,255,.85); --glass-lo:rgba(255,255,255,.25);
+  --orb1:rgba(59,130,246,.45); --orb2:rgba(168,85,247,.35); --orb3:rgba(14,165,233,.3);
+  --shadow:0 1px 1px rgba(255,255,255,.7) inset,0 8px 32px rgba(15,23,42,.12),0 24px 48px -24px rgba(15,23,42,.25);
+  --hero:linear-gradient(135deg,#2563eb,#3b82f6 50%,#8b5cf6);
+  --radius:20px;
 }
 /* ── Modern Dark Pro ── */
 [data-theme='darkpro']{
-  --bg:#0b0f1a; --sf:#161c2c; --ink:#f1f5fb; --mute:#8a94a6; --line:#232c42;
-  --ac:#3b82f6; --ac2:#60a5fa; --acf:#07101f; --soft:#141d33;
+  --bg:#070b14; --sf:rgba(22,28,44,.55); --ink:#f1f5fb; --mute:#8a94a6; --line:rgba(148,163,184,.14);
+  --ac:#3b82f6; --ac2:#60a5fa; --acf:#07101f; --soft:rgba(59,130,246,.14);
   --pos:#22c55e; --neg:#ef4444;
-  --shadow:0 1px 2px rgba(0,0,0,.5),0 10px 28px -14px rgba(0,0,0,.6);
+  --glass-hi:rgba(148,197,255,.14); --glass-lo:rgba(148,197,255,.04);
+  --orb1:rgba(29,78,216,.5); --orb2:rgba(34,197,94,.22); --orb3:rgba(56,189,248,.28);
+  --shadow:0 1px 1px rgba(255,255,255,.08) inset,0 8px 32px rgba(0,0,0,.55),0 24px 48px -24px rgba(0,0,0,.7);
   --hero:linear-gradient(135deg,#1d4ed8,#3b82f6 55%,#22c55e 130%);
-  --radius:16px;
+  --radius:18px;
 }
 /* ── Premium Gold ── */
 [data-theme='gold']{
-  --bg:#050505; --sf:#121212; --ink:#f5f1e6; --mute:#9c927a; --line:#2a2415;
-  --ac:#d4af37; --ac2:#f5c542; --acf:#1a1405; --soft:#1c1808;
+  --bg:#060604; --sf:rgba(20,17,10,.55); --ink:#f5f1e6; --mute:#9c927a; --line:rgba(212,175,55,.22);
+  --ac:#d4af37; --ac2:#f5c542; --acf:#1a1405; --soft:rgba(212,175,55,.12);
   --pos:#22c55e; --neg:#ef4444;
-  --shadow:0 1px 2px rgba(0,0,0,.6),0 10px 30px -14px rgba(212,175,55,.25);
+  --glass-hi:rgba(245,197,66,.16); --glass-lo:rgba(245,197,66,.04);
+  --orb1:rgba(212,175,55,.3); --orb2:rgba(146,64,14,.35); --orb3:rgba(245,197,66,.15);
+  --shadow:0 1px 1px rgba(245,197,66,.14) inset,0 8px 32px rgba(0,0,0,.6),0 24px 48px -24px rgba(212,175,55,.28);
   --hero:linear-gradient(135deg,#8a6d1c,#d4af37 55%,#f5c542);
-  --radius:14px;
+  --radius:16px;
 }
 /* ── Cyber Finance ── */
 [data-theme='cyber']{
-  --bg:#0d0221; --sf:#1a0b33; --ink:#f3eaff; --mute:#a78bc9; --line:#3b1d63;
-  --ac:#a855f7; --ac2:#e879f9; --acf:#160323; --soft:#241040;
+  --bg:#0d0221; --sf:rgba(26,11,51,.5); --ink:#f3eaff; --mute:#a78bc9; --line:rgba(168,85,247,.28);
+  --ac:#a855f7; --ac2:#e879f9; --acf:#160323; --soft:rgba(168,85,247,.14);
   --pos:#4ade80; --neg:#fb7185;
-  --shadow:0 0 0 1px rgba(168,85,247,.25),0 0 24px -6px rgba(168,85,247,.45);
+  --glass-hi:rgba(232,121,249,.16); --glass-lo:rgba(232,121,249,.04);
+  --orb1:rgba(124,58,237,.5); --orb2:rgba(232,121,249,.3); --orb3:rgba(34,211,238,.25);
+  --shadow:0 1px 1px rgba(232,121,249,.16) inset,0 0 24px -6px rgba(168,85,247,.4),0 24px 48px -24px rgba(124,58,237,.5);
   --hero:linear-gradient(135deg,#7c3aed,#a855f7 50%,#e879f9);
-  --radius:10px;
+  --radius:14px;
 }
 
 *{box-sizing:border-box}
@@ -46,7 +53,24 @@ body{
   background:var(--bg); color:var(--ink);
   font:16px/1.5 -apple-system,"SF Pro Display","Segoe UI",Roboto,sans-serif;
   -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased;
+  background-attachment:fixed;
 }
+/* ── Latar aurora 3D: orb cahaya berlapis di belakang kaca ── */
+body::before{
+  content:""; position:fixed; inset:-20%; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(38% 38% at 18% 12%, var(--orb1), transparent 70%),
+    radial-gradient(42% 42% at 85% 22%, var(--orb2), transparent 70%),
+    radial-gradient(46% 46% at 55% 88%, var(--orb3), transparent 72%);
+  filter:blur(30px);
+  animation:drift 26s ease-in-out infinite alternate;
+}
+body::after{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(0,0,0,.18));
+}
+@keyframes drift{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(2%,2%,0) scale(1.06)}}
+@media (prefers-reduced-motion:reduce){body::before{animation:none}}
 /* scrollbar halus, bukan scrollbar OS kotak-kotak */
 main{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 main::-webkit-scrollbar{width:4px}
@@ -59,31 +83,36 @@ main::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
 .top h1{font-size:22px;margin:0;font-weight:800;letter-spacing:-.02em}
 .topbtns{display:flex;gap:8px}
 .icobtn{
-  width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--sf);
+  width:40px;height:40px;border-radius:50%;border:1px solid var(--line);
+  background:linear-gradient(160deg,var(--glass-hi),var(--glass-lo)),var(--sf);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);
 }
-[data-theme='gold'] .icobtn{border-color:rgba(212,175,55,.4)}
-[data-theme='cyber'] .icobtn{border-color:rgba(168,85,247,.4)}
 [data-theme='gold'] .top h1{color:var(--ac);letter-spacing:.03em}
 [data-theme='cyber'] .top h1{text-shadow:0 0 12px var(--ac)}
 
 /* ── Konten ── */
 main{flex:1;overflow:auto;padding:8px 16px 24px}
 section{
-  background:var(--sf); border-radius:var(--radius); padding:18px; margin-bottom:14px;
-  box-shadow:var(--shadow); border:1px solid transparent;
+  background:linear-gradient(160deg,var(--glass-hi),var(--glass-lo) 40%),var(--sf);
+  backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border-radius:var(--radius); padding:18px; margin-bottom:14px;
+  box-shadow:var(--shadow); border:1px solid var(--line);
   transition:transform .15s ease;
 }
-section:active{transform:scale(.98)}
-[data-theme='gold'] section{border:1px solid rgba(212,175,55,.35)}
-[data-theme='cyber'] section{border:1px solid rgba(168,85,247,.4)}
+section:active{transform:scale(.98) translateY(1px)}
 h2{font-size:13px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:700}
 [data-theme='gold'] h2{color:var(--ac)}
 
-/* ── Kartu hero (saldo) ── */
-.hero{background:var(--hero); color:#fff; border:0 !important}
-[data-theme='cyber'] .hero{box-shadow:0 0 30px -8px rgba(168,85,247,.7)}
-[data-theme='gold'] .hero{color:#1a1405}
+/* ── Kartu hero (saldo) — kaca 3D tebal ── */
+.hero{
+  background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(255,255,255,.06) 45%),var(--hero);
+  backdrop-filter:blur(22px) saturate(1.6); -webkit-backdrop-filter:blur(22px) saturate(1.6);
+  color:#fff; border:1px solid rgba(255,255,255,.35) !important;
+  box-shadow:0 1px 1px rgba(255,255,255,.5) inset,0 16px 40px -12px color-mix(in srgb,var(--ac) 55%,transparent),0 32px 64px -32px rgba(0,0,0,.5);
+}
+[data-theme='cyber'] .hero{box-shadow:0 1px 1px rgba(255,255,255,.4) inset,0 0 40px -8px rgba(168,85,247,.8),0 32px 64px -32px rgba(0,0,0,.6)}
+[data-theme='gold'] .hero{color:#1a1405;border-color:rgba(255,255,255,.45) !important}
 .hero .big{font-size:34px;letter-spacing:-.02em}
 .hero .mute{color:inherit;opacity:.85}
 .hero .chip{
@@ -104,19 +133,21 @@ h2{font-size:13px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.08em;
 /* ── Form ── */
 input,select,textarea{
   font:inherit;padding:12px 14px;border-radius:calc(var(--radius) - 4px);border:1.5px solid var(--line);
-  background:var(--bg);color:var(--ink);width:100%;margin:4px 0;outline:none;
+  background:var(--glass-lo);color:var(--ink);width:100%;margin:4px 0;outline:none;
   transition:border-color .15s;
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
 }
 input:focus,select:focus,textarea:focus{border-color:var(--ac)}
 [data-theme='cyber'] input:focus,[data-theme='cyber'] select:focus{box-shadow:0 0 12px -4px var(--ac)}
 button.btn{
   font:inherit;padding:13px;border-radius:calc(var(--radius) - 4px);border:0;font-weight:700;width:100%;margin:4px 0;
-  background:var(--hero);color:#fff;cursor:pointer;transition:transform .15s;
-  box-shadow:0 4px 14px -4px rgba(37,99,235,.5);
+  background:linear-gradient(160deg,rgba(255,255,255,.25),rgba(255,255,255,.05) 50%),var(--hero);
+  color:#fff;cursor:pointer;transition:transform .15s;
+  box-shadow:0 1px 1px rgba(255,255,255,.45) inset,0 8px 20px -8px color-mix(in srgb,var(--ac) 60%,transparent);
 }
-[data-theme='gold'] button.btn{color:#1a1405;box-shadow:0 4px 16px -6px rgba(212,175,55,.6)}
-[data-theme='cyber'] button.btn{box-shadow:0 0 18px -6px var(--ac)}
-[data-theme='darkpro'] button.btn{box-shadow:0 4px 14px -4px rgba(59,130,246,.55)}
+[data-theme='gold'] button.btn{color:#1a1405}
+[data-theme='cyber'] button.btn{box-shadow:0 1px 1px rgba(255,255,255,.4) inset,0 0 18px -6px var(--ac)}
+[data-theme='darkpro'] button.btn{box-shadow:0 1px 1px rgba(255,255,255,.3) inset,0 4px 14px -4px rgba(59,130,246,.55)}
 button.btn:active{transform:scale(.97)}
 button.btn.alt{background:var(--soft);color:var(--ac);border:0;box-shadow:none}
 button.link{background:none;border:0;color:var(--neg);padding:4px;font-size:14px;cursor:pointer}
@@ -162,8 +193,9 @@ button.link{background:none;border:0;color:var(--neg);padding:4px;font-size:14px
 
 /* ── Bottom nav ── */
 nav{
-  display:flex;background:color-mix(in srgb,var(--sf) 92%,transparent);
-  backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  display:flex;background:linear-gradient(160deg,var(--glass-hi),var(--glass-lo) 40%),var(--sf);
+  backdrop-filter:blur(24px) saturate(1.5); -webkit-backdrop-filter:blur(24px) saturate(1.5);
+  border-top:1px solid var(--line);
   padding:6px 8px calc(6px + env(safe-area-inset-bottom));
 }
 [data-theme='gold'] nav{border-top-color:rgba(212,175,55,.35)}
@@ -185,18 +217,18 @@ nav button.on{color:var(--ac);background:var(--soft)}
 
 .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 .tile{
-  background:var(--sf);border:1px solid transparent;border-radius:var(--radius);padding:12px 6px;
+  background:linear-gradient(160deg,var(--glass-hi),var(--glass-lo) 40%),var(--sf);
+  backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4);
+  border:1px solid var(--line);border-radius:var(--radius);padding:12px 6px;
   display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
   box-shadow:var(--shadow);font:inherit;color:var(--ink);transition:transform .15s;
 }
-[data-theme='gold'] .tile{border-color:rgba(212,175,55,.35)}
-[data-theme='cyber'] .tile{border-color:rgba(168,85,247,.4)}
 .tile:active{transform:scale(.95)}
 .ticon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px}
 .tlabel{font-size:11px;font-weight:600;text-align:center;line-height:1.2}
 
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.stat{background:var(--sf);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px}
+.stat{background:linear-gradient(160deg,var(--glass-hi),var(--glass-lo) 40%),var(--sf);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px}
 .stat b{font-size:15px;font-variant-numeric:tabular-nums}
 .minibar{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:6px}
 .minibar i{flex:1;background:var(--soft);border-radius:4px 4px 2px 2px;min-height:3px;transition:height .3s}
@@ -223,7 +255,9 @@ input,select,textarea,button{transition:border-color .15s, background .15s, tran
 .themegrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .themecard{
   border:2px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;
-  background:var(--bg);text-align:left;font:inherit;color:var(--ink);transition:border-color .15s, transform .15s;
+  background:linear-gradient(160deg,var(--glass-hi),var(--glass-lo) 40%),var(--sf);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  text-align:left;font:inherit;color:var(--ink);transition:border-color .15s, transform .15s;
 }
 .themecard:active{transform:scale(.97)}
 .themecard.on{border-color:var(--ac)}
