@@ -712,3 +712,12 @@ html[data-time='night'] .qsItem .tag{text-shadow:0 1px 4px rgba(0,0,0,.7)}
   border-color:rgba(168,85,247,.65) !important;
   box-shadow:0 0 0 1px rgba(168,85,247,.25) inset,0 0 22px -6px rgba(168,85,247,.6) !important}
 [data-theme='cyber'] .qsTxt span{color:#fff !important}
+
+
+/* specificity fix: gold/cyber tint menang atas rule day/night generik */
+html[data-theme='gold'] .qsItem,html[data-theme='gold'] .qsNote,html[data-theme='gold'] .agendaCard,html[data-theme='gold'] .motto,html[data-theme='gold'] section,html[data-theme='gold'] .wcard,html[data-theme='gold'] .dashHero,html[data-theme='gold'] .dashGreet{
+  background:linear-gradient(160deg,rgba(255,238,190,.72),rgba(255,209,120,.5)) !important;
+  border-color:rgba(190,150,40,.7) !important}
+html[data-theme='cyber'] .qsItem,html[data-theme='cyber'] .qsNote,html[data-theme='cyber'] .agendaCard,html[data-theme='cyber'] .motto,html[data-theme='cyber'] section,html[data-theme='cyber'] .wcard,html[data-theme='cyber'] .dashHero,html[data-theme='cyber'] .dashGreet{
+  background:linear-gradient(160deg,rgba(76,29,149,.72),rgba(30,20,60,.55)) !important;
+  border-color:rgba(168,85,247,.65) !important}
