@@ -20,18 +20,20 @@ export const setTheme = (t: ThemeId) => {
   window.dispatchEvent(new CustomEvent('themechange', { detail: t }));
 };
 
-// wallpaper: pasang <div class="wpbg"> + body.wp, ganti day/night sesuai jam
+// wallpaper: pasang <img class="wpbg"> + body.wp, ganti day/night sesuai jam
 export function applyWallpaper(on: boolean) {
   localStorage.setItem('wp', on ? '1' : '0');
-  const el = document.querySelector('.wpbg') as HTMLDivElement | null;
+  let el = document.querySelector('.wpbg') as HTMLImageElement | null;
   if (on && !el) {
-    const d = document.createElement('div');
-    d.className = 'wpbg';
-    document.body.appendChild(d);
+    el = document.createElement('img');
+    el.className = 'wpbg';
+    el.alt = '';
+    document.body.appendChild(el);
   }
   if (!on && el) el.remove();
   document.body.classList.toggle('wp', on);
-  document.documentElement.classList.toggle('wp', on); // selector CSS butuh di html
+  document.documentElement.classList.toggle('wp', on);
+  if (on && el && !el.src) el.src = './day.jpg';
 }
 export const wallOn = () => localStorage.getItem('wp') === '1';
 export const setTimeOfDay = (night: boolean) => {

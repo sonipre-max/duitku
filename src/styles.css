@@ -71,18 +71,17 @@ body::after{
 }
 /* ── Wallpaper user (siang/malam otomatis) di belakang semuanya ── */
 body.wp .wpbg{
-  position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-size:cover; background-position:center;
-  transition:opacity 1s ease, filter 1s ease;
+  position:fixed; inset:0; width:100vw; height:100vh; object-fit:cover; z-index:-1; pointer-events:none;
 }
-body.wp #root{position:relative;z-index:1}
+body.wp .hello b, body.wp .hello .tag{text-shadow:0 1px 6px rgba(0,0,0,.45)}
+body.wp .hello .wchip{background:rgba(255,255,255,.85)}
 nav{z-index:50}
 body.wp .wpbg::after{
   content:""; position:absolute; inset:0;
   background:linear-gradient(180deg, rgba(0,0,0,.14), rgba(0,0,0,.38));
 }
-html.wp[data-time='night'] body .wpbg{background-image:url(./night.jpg);opacity:.9}
-html.wp[data-time='day'] body .wpbg{background-image:url(./day.jpg);opacity:.9}
+body.wp[data-time='night'] .wpbg{content:url(./night.jpg)}
+body.wp[data-time='day'] .wpbg{content:url(./day.jpg)}
 @keyframes drift{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(2%,2%,0) scale(1.06)}}
 @media (prefers-reduced-motion:reduce){body::before{animation:none}}
 /* scrollbar halus, bukan scrollbar OS kotak-kotak */
