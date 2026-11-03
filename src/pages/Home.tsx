@@ -6,6 +6,7 @@ import { idr, today } from '../util';
 import { loadCfg } from '../ai';
 import { useTheme } from '../theme';
 import SkyCard from './SkyCard';
+import HomeExtra from './HomeExtra';
 
 const QUICK = [
   { go: 'uang', icon: '💸', label: 'Catat Keuangan', short: 'Keuangan', c: '#3b82f6' },
@@ -251,90 +252,11 @@ export default function Home({ go }: { go: (t: string) => void }) {
     );
   }
 
-  /* ═══ DARK PRO & LIGHT: donut portofolio + ringkasan 3 stat ═══ */
+  /* ═══ DARK PRO & LIGHT: dashboard ringkas ═══ */
   return (
     <>
-      {theme === 'light' && false && (
-        <div className="hello">
-          <div>
-            <b>Halo, {name} 👋</b>
-            <div className="tag">Semangat hari ini!</div>
-          </div>
-          <div className="wchip">☀️ 28°C · Denpasar</div>
-        </div>
-      )}
-      <SkyCard />
-      <section className="hero">
-        {HeroTitle}
-        {HeroChart}
-        {hi >= 0 && <div className="sparkTip" style={{ left: pts[hi][0] + '%' }}>{tipPrice} · {tipDate}</div>}
-        {growth === null && <div className="chip">Bulan ini: <span className="pos">+{idr(inc)}</span> · <span className="neg">-{idr(out)}</span></div>}
-        </section>
-
-        <QuickRow />
-
-      <section>
-        <h2>Ringkasan Hari Ini</h2>
-        <div className="stats three">
-          <div className="stat"><b className="pos">+{idr(inc)}</b><span className="mute">Pemasukan</span></div>
-          <div className="stat"><b className="neg">-{idr(out)}</b><span className="mute">Pengeluaran</span></div>
-          <div className="stat"><b className={net >= 0 ? 'pos' : 'neg'}>{net >= 0 ? '+' : '-'}{idr(Math.abs(net))}</b><span className="mute">Saldo Bersih</span></div>
-        </div>
-        <div className="minibar">
-          {days7.map((v, i) => <i key={i} style={{ height: v > 0 ? Math.max(8, (v / spendMax) * 100) + '%' : '4px', opacity: v > 0 ? 1 : .3 }} className={i === 6 ? 'now' : ''} />)}
-        </div>
-      </section>
-
-      <section onClick={() => go('dca')}>
-        <h2>Portofolio Investasi</h2>
-        {donut.length === 0 ? <div className="mute">Belum ada investasi. Mulai rencana DCA pertama.</div> : (
-          <div className="donutWrap">
-            <PieChart width={150} height={140}>
-              <Pie data={donut} dataKey="value" nameKey="name" outerRadius={62} innerRadius={34} paddingAngle={3} strokeWidth={0}>
-                {donut.map((d, i) => <Cell key={i} fill={DONUT_C[d.name] || '#888'} />)}
-              </Pie>
-            </PieChart>
-            <div className="legend">
-              {growth !== null && <div className="big pos">+{growth.toFixed(1)}%</div>}
-              <div className="tag">7 hari · nilai {idr(value)}</div>
-              {donut.map(d => (
-                <div className="lgrow" key={d.name}><span className="ldot" style={{ background: DONUT_C[d.name] }} />{d.name} <b>{d.pct}%</b></div>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section onClick={() => go('tugas')}>
-        <h2>To Do Hari Ini {doneToday.length}/{todays.length + doneToday.length}</h2>
-        {todays.length === 0 && doneToday.length === 0 ? <div className="mute">Tidak ada agenda. Ketuk untuk menambah.</div>
-          : [...todays.slice(0, 4).map(t => ({ id: t.id, title: t.title, time: t.time, done: false })),
-             ...doneToday.slice(0, 2).map(t => ({ id: t.id, title: t.title, time: t.time, done: true }))]
-            .map(t => (
-              <div className="row" key={t.id}>
-                <span><span className={'abox' + (t.done ? ' ok' : '')}>{t.done ? '✓' : ''}</span>{t.title}</span>
-                <span className="mute">{t.time}</span>
-              </div>
-            ))}
-      </section>
-
-      <section>
-        <h2>Harga Pasar</h2>
-        {mkt.length === 0 && <div className="mute">Memuat harga pasar…</div>}
-        {mkt.slice(0, theme === 'light' ? 2 : 4).map(t => {
-          const info = MKT.find(x => x.sym === t.sym)!;
-          return (
-            <div className="row mkt" key={t.sym}>
-              <span className="mcoin" style={{ background: info.c + '22', color: info.c }}>{info.icon}</span>
-              <div style={{ flex: 1 }}><div>{info.label}</div><div className="tag">{info.t} · USD</div></div>
-              <div style={{ textAlign: 'right' }}>
-                <b>{t.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}</b>
-                <div className={'tag ' + (t.chg >= 0 ? 'pos' : 'neg')}>{t.chg >= 0 ? '▲ +' : '▼ '}{t.chg.toFixed(1)}%</div>
-              </div>
-            </div>
-          );
-        })}
-      </section>
+      <SkyCard go={go} />
+      <HomeExtra go={go} theme={theme} />
     </>
   );
 }
