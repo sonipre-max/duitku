@@ -1,23 +1,7 @@
 import { useState } from 'react';
-import { ask, loadCfg, Msg } from '../ai';
-import { db } from '../db';
-import { schedule } from '../notif';
-import { today } from '../util';
+import { loadCfg, Msg } from '../ai';
+import { agentTurn } from '../agent';
 import { Ic, Deco } from '../icons';
-
-async function context() {
-  const m = today().slice(0, 7);
-  const txs = (await db.txs.toArray()).filter(t => t.date.startsWith(m) && t.category !== 'Transfer');
-  const by: Record<string, number> = {};
-  let i = 0, o = 0;
-  txs.forEach(t => { if (t.type === 'out') { o += t.amount; by[t.category] = (by[t.category] || 0) + t.amount; } else i += t.amount; });
-  const accounts = await db.accounts.toArray();
-  const trades = await db.trades.toArray();
-  const inv = trades.reduce((s, t) => s + t.amount, 0);
-  const open = (await db.tasks.toArray()).filter(t => !t.done).slice(0, 20).map(t => `${t.title} (${t.date})`);
-  const acc = accounts.map(a => a.name).join(', ');
-  return `Data pengguna bulan ${m}: pemasukan Rp${i}, pengeluaran Rp${o}, per kategori ${JSON.stringify(by)}. Rekening: ${acc}. Total dibelanjakan untuk simulasi DCA sejauh ini: Rp${inv}. Tugas terbuka: ${open.join('; ') || '-'}. Jawab pertanyaan tentang angka-angka ini dengan hitungan yang benar.`;
-}
 
 // Terinspirasi Lobe Chat: bubble chat, quick prompts, indikator mengetik
 export default function AI() {
@@ -36,30 +20,19 @@ export default function AI() {
     const cfg = loadCfg();
     const next: Msg[] = [...msgs, { role: 'user', content: val }];
     setMsgs(next); setText(''); setBusy(true);
+    const push = (m: Msg) => setMsgs(cur => {
+      // gabungkan chip tool berurutan jadi satu bubble
+      const last = cur[cur.length - 1];
+      if (m.content.startsWith('🔧') && last?.role === 'assistant' && last.content.startsWith('🔧')) {
+        return [...cur.slice(0, -1), { ...last, content: last.content + '\n' + m.content }];
+      }
+      return [...cur, m];
+    });
     try {
       if (mode === 'task') {
-        const sys = `Hari ini ${today()}. Ubah kalimat pengguna menjadi satu objek JSON {"title":string,"date":"YYYY-MM-DD","time":"HH:MM" atau "","repeat":"none"|"daily"|"weekly"|"monthly"}. "besok" = ${today()} +1 hari, "lusa" = +2 hari. Jika jam disebut "pagi" pakai 08:00, "siang" 12:00, "sore" 16:00, "malam" 19:00. Balas HANYA JSON tanpa teks lain.`;
-        let r = '';
-        for (let att = 0; att < 2; att++) {
-          r = (await ask([next[next.length - 1]], cfg, sys)).trim();
-          const m = r.match(/\{[\s\S]*\}/);
-          if (m) {
-            try {
-              const j = JSON.parse(m[0]);
-              if (j?.title && /^\d{4}-\d{2}-\d{2}$/.test(j.date || '')) {
-                const t = { title: String(j.title), date: j.date, time: /^\d{2}:\d{2}$/.test(j.time || '') ? j.time : '', repeat: (['none', 'daily', 'weekly', 'monthly'].includes(j.repeat) ? j.repeat : 'none') as any, priority: 2 as const, done: false, doneOn: [] };
-                const id = await db.tasks.add(t);
-                schedule({ ...t, id });
-                setMsgs([...next, { role: 'assistant', content: `✅ Tugas dibuat: ${t.title} pada ${t.date}${t.time ? ' pukul ' + t.time : ''}${t.repeat !== 'none' ? ` (diulang ${t.repeat === 'daily' ? 'tiap hari' : t.repeat === 'weekly' ? 'tiap minggu' : 'tiap bulan'})` : ''}.` }]);
-                return;
-              }
-            } catch { /* JSON rusak → coba lagi */ }
-          }
-        }
-        setMsgs([...next, { role: 'assistant', content: `Gagal memahami tugas. Coba tulis lebih eksplisit, mis. "bayar listrik 5 November jam 19:00". Jawaban AI: ${r.slice(0, 120)}` }]);
+        await agentTurn([next[next.length - 1]], cfg, push);
       } else {
-        const sys = 'Kamu asisten keuangan dan produktivitas pribadi. Jawab singkat, jelas, dalam bahasa Indonesia. Hitung dengan akurat; tunjukkan perhitungan singkat jika relevan. Simulasi investasi bukan nasihat keuangan.' + (cfg.withData ? ' ' + await context() : '');
-        setMsgs([...next, { role: 'assistant', content: await ask(next, cfg, sys) }]);
+        await agentTurn(next, cfg, push);
       }
     } catch (e: any) {
       setMsgs([...next, { role: 'assistant', content: 'Gagal: ' + (e?.message || e) + (navigator.onLine ? '' : ' (kamu sedang offline)') }]);

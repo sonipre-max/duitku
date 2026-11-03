@@ -51,7 +51,7 @@
 html,body,#root{height:100%;margin:0}
 body{
   background:var(--bg); color:var(--ink);
-  font:16px/1.5 -apple-system,"SF Pro Display","Segoe UI",Roboto,sans-serif;
+  font:16px/1.5 "Plus Jakarta Sans","SF Pro Display","Segoe UI",Roboto,sans-serif;
   -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased;
   background-attachment:fixed;
 }
@@ -596,5 +596,33 @@ html[data-time='night'] .chip.on{background:var(--ac);color:#fff}
 @keyframes tyblink{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
 .chatInput{display:flex;gap:8px;align-items:flex-end}
 .chatInput textarea{flex:1}
+/* Font khusus: To Do list (agTitle/tdTxt) pakai Space Grotesk — bukan font body */
+.tdTxt,.tdHeroTxt b,.agTitle b,.tdEmpty b{font-family:"Space Grotesk","Plus Jakarta Sans",sans-serif;letter-spacing:-.01em}
+.tdTxt{font-size:14.5px;font-weight:600}
 
+/* Toolbar: tombol AI + gear aktif */
+.icobtn.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border-color:transparent;box-shadow:0 6px 16px -6px var(--ac)}
+
+/* ── Mode siang/malam: pastikan SEMUA menu ikut ── */
+html[data-time='night'] .top h1,html[data-time='night'] .tdTxt,html[data-time='night'] .tdHeroTxt b,
+html[data-time='night'] .tdEmpty b,html[data-time='night'] .agTxt b,html[data-time='night'] .qaBtn,
+html[data-time='night'] .msg.assistant,html[data-time='night'] .sheet,html[data-time='night'] .chatEmpty b,
+html[data-time='night'] .ivBalance .ivTotal,html[data-time='night'] .heroCard,html[data-time='night'] .chip{color:#f1f5fb}
+html[data-time='night'] .tdHeroTxt span,html[data-time='night'] .tag,html[data-time='night'] .tdEmpty span{color:rgba(226,232,240,.7)}
+html[data-time='night'] .chatWrap .msg.user{color:#fff}
+html[data-time='night'] .cal button,html[data-time='night'] .cal span{color:#e2e8f0}
+html[data-time='day'] body.wp .tdTxt,html[data-time='day'] body.wp .agTxt b,html[data-time='day'] body.wp .tdHeroTxt b{text-shadow:0 1px 4px rgba(0,0,0,.35)}
+/* kartu di atas wallpaper terang: teks tetap terbaca */
+html[data-time='day'] body.wp .qaBtn{color:#0f172a}
+/* Settings rapi */
+.setHead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.setHead b{font-size:14.5px;display:block;font-family:"Space Grotesk","Plus Jakarta Sans",sans-serif}
+.setHead span{font-size:11.5px;color:var(--mute)}
+.setIco{width:32px;height:32px;border-radius:10px;background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--ac);flex-shrink:0}
+.setToggle{display:flex;justify-content:space-between;align-items:center;width:100%;padding:11px 2px;border:none;background:transparent;color:var(--ink);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;border-bottom:1px solid var(--line)}
+.setToggle .tknob{width:40px;height:22px;border-radius:99px;background:var(--line);position:relative;transition:.2s;flex-shrink:0}
+.setToggle .tknob::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.setToggle.on .tknob{background:var(--ac)}
+.setToggle.on .tknob::after{left:20px}
+.btnRestore{display:flex;align-items:center;justify-content:center;font:inherit;padding:13px;border-radius:calc(var(--radius) - 4px);font-weight:700;margin:4px 0;background:var(--soft);color:var(--ac);cursor:pointer}
 .loading { text-align: center; padding: 40px 0; opacity: .5; }

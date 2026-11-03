@@ -39,7 +39,10 @@ export default function App() {
   useEffect(() => {
     (async () => {
       if ((await db.accounts.count()) === 0) await db.accounts.add({ name: 'Tunai', balance0: 0 });
-      runAll(); // lanjutkan DCA otomatis saat aplikasi dibuka
+      try { const r = await runAll(); if (r && r !== 'Sudah terbaru.') console.log('[DCA]', r); } catch (e) { console.warn('[DCA] auto-run gagal:', e); }
+      // jalankan ulang tiap 6 jam selama app terbuka
+      const iv = setInterval(async () => { try { await runAll(); } catch { /* offline */ } }, 6 * 60 * 60 * 1000);
+      return () => clearInterval(iv);
     })();
   }, []);
 
@@ -50,7 +53,8 @@ export default function App() {
       <div className="top">
         <h1>{title}</h1>
         <div className="topbtns">
-          <button className="icobtn" title="Setelan" onClick={() => setCfg(!cfg)}><Ic.settings size={20} /></button>
+          <button className={'icobtn' + (tab === 'ai' && !cfg ? ' on' : '')} title="Chat AI" onClick={() => { setTab('ai'); setCfg(false); }}><Ic.ai size={20} /></button>
+          <button className={'icobtn' + (cfg ? ' on' : '')} title="Setelan" onClick={() => setCfg(!cfg)}><Ic.settings size={20} /></button>
         </div>
       </div>
       <main>

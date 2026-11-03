@@ -46,15 +46,17 @@ export async function runPlan(plan: DcaPlan): Promise<number> {
 export async function runAll(): Promise<string> {
   if (!navigator.onLine) return 'Offline: simulasi dilanjutkan saat online.';
   let n = 0;
+  const errs: string[] = [];
   const plans = await db.plans.filter(p => p.active).toArray();
-  for (let i = 0; i < plans.length; i++) {
+  for (const p of plans) {
     try {
-      n += await runPlan(plans[i]);
+      n += await runPlan(p);
     } catch (e: any) {
-      if (i > 0 && n > 0) return `${n} pembelian ditambahkan. Plan berikutnya gagal: ${e?.message || e}`;
-      return 'Gagal sinkron: ' + (e?.message || e);
+      errs.push(`${p.name}: ${e?.message || e}`);
     }
-    if (i < plans.length - 1) await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 500));
   }
+  if (errs.length && !n) return 'Gagal sinkron: ' + errs.join(' · ');
+  if (errs.length) return `${n} pembelian ditambahkan. Catatan: ${errs.join(' · ')}`;
   return n ? `${n} pembelian simulasi ditambahkan.` : 'Sudah terbaru.';
 }

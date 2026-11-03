@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { db, TABLES } from '../db';
-import { loadCfg, saveCfg } from '../ai';
+import { loadCfg, saveCfg, Cfg } from '../ai';
 import { saveFile } from '../util';
 import { THEMES, getTheme, setTheme, applyWallpaper, wallOn, ThemeId } from '../theme';
+import { Ic, Deco } from '../icons';
 
 const sha = async (s: string) =>
   [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(b => b.toString(16).padStart(2, '0')).join('');
 
+// Settings rapi: section berkelompok dengan ikon + deskripsi
 export default function Settings() {
   const [c, setC] = useState<Cfg>(loadCfg());
   const [wp, setWp] = useState(wallOn());
@@ -32,10 +34,26 @@ export default function Settings() {
     } catch { setMsg('File backup tidak valid.'); }
   };
 
+  const Sec = ({ icon, title, desc, children }: { icon: any; title: string; desc?: string; children: any }) => (
+    <section className="setSec">
+      <div className="setHead">
+        <span className="setIco">{icon}</span>
+        <div><b>{title}</b>{desc && <span>{desc}</span>}</div>
+      </div>
+      {children}
+    </section>
+  );
+
+  const Toggle = ({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) => (
+    <button className={'setToggle' + (on ? ' on' : '')} onClick={() => onChange(!on)}>
+      <span>{label}</span>
+      <span className="tknob" />
+    </button>
+  );
+
   return (
     <>
-      <section>
-        <h2>Tema tampilan</h2>
+      <Sec icon={<Ic.star size={17} />} title="Tema tampilan">
         <div className="themegrid">
           {THEMES.map(t => (
             <button key={t.id} className={'themecard' + (theme === t.id ? ' on' : '')} onClick={() => pick(t.id)}>
@@ -47,53 +65,51 @@ export default function Settings() {
             </button>
           ))}
         </div>
-        <div className="tag" style={{ marginTop: 8 }}>Tema langsung aktif saat dipilih dan tersimpan di perangkat ini.</div>
-      </section>
-      <section>
-        <h2>Binance API</h2>
-        <input type="password" value={c.binanceKey || ''} onChange={e => set({ binanceKey: e.target.value })} placeholder="API key Binance (opsional)" />
-        <div className="tag">Dipakai untuk data harga pasar (ticker 24 jam & grafik). Tanpa key pun data publik tetap jalan; key hanya menaikkan batas rate. Key disimpan lokal di perangkat ini.</div>
-      </section>
-      <section>
-        <h2>Ringkasan harian (jam & cuaca)</h2>
+        <div className="tag" style={{ marginTop: 8 }}>Langsung aktif & tersimpan di perangkat.</div>
+      </Sec>
+
+      <Sec icon={<Deco.moon width={16} />} title="Tampilan harian" desc="Jam, cuaca & wallpaper">
         <input value={c.city || ''} onChange={e => set({ city: e.target.value })} placeholder="Nama kota (mis. Jakarta)" />
         <div className="g2">
           <input inputMode="decimal" value={c.lat ?? ''} onChange={e => set({ lat: e.target.value === '' ? undefined : +e.target.value })} placeholder="Latitude (mis. -6.2)" />
           <input inputMode="decimal" value={c.lon ?? ''} onChange={e => set({ lon: e.target.value === '' ? undefined : +e.target.value })} placeholder="Longitude (mis. 106.8)" />
         </div>
-        <input inputMode="numeric" value={c.tzOffset ?? ''} onChange={e => set({ tzOffset: e.target.value === '' ? undefined : +e.target.value })} placeholder="Offset zona waktu menit (mis. 420 = WIB). Kosong = ikut perangkat" />
-        <div className="tag">Cuaca dari open-meteo (gratis, tanpa key). Cari latitude/longitude kotamu di latlong.net. Contoh: Jakarta -6.2 / 106.8, Denpasar -8.65 / 115.22.</div>
-        <label className="row">
-          <span>Gunakan wallpaper anime (siang/malam otomatis)</span>
-          <input type="checkbox" checked={wp} onChange={e => { setWp(e.target.checked); applyWallpaper(e.target.checked); }} />
-        </label>
-        <div className="tag">Wallpaper tampil sebagai latar belakang seluruh app — kartu-kartu kaca di atasnya. Aktif secara default.</div>
-      </section>
-      <section>
-        <h2>Model AI</h2>
+        <input inputMode="numeric" value={c.tzOffset ?? ''} onChange={e => set({ tzOffset: e.target.value === '' ? undefined : +e.target.value })} placeholder="Offset zona waktu menit (420 = WIB). Kosong = ikut perangkat" />
+        <div className="tag">Cuaca open-meteo (gratis). Cari lat/long di latlong.net — Jakarta -6.2/106.8, Denpasar -8.65/115.22.</div>
+        <Toggle on={wp} onChange={v => { setWp(v); applyWallpaper(v); }} label="Wallpaper anime (siang/malam otomatis)" />
+      </Sec>
+
+      <Sec icon={<Ic.ai size={17} />} title="Asisten AI" desc="Chat, baca & ubah data app">
         <select value={c.provider} onChange={e => set({ provider: e.target.value as any, model: e.target.value === 'gemini' ? 'gemini-2.0-flash' : 'openrouter/auto' })}>
           <option value="openrouter">OpenRouter</option><option value="gemini">Google Gemini</option>
         </select>
         <input value={c.model} onChange={e => set({ model: e.target.value })} placeholder="Nama model" />
         <input type="password" value={c.key} onChange={e => set({ key: e.target.value })} placeholder="API key" />
-        <label className="row" style={{ border: 0 }}>
-          <span>Kirim ringkasan data keuangan ke AI</span>
-          <input type="checkbox" style={{ width: 22 }} checked={c.withData} onChange={e => set({ withData: e.target.checked })} />
-        </label>
-        <div className="tag">Key disimpan di penyimpanan privat aplikasi di perangkat ini.</div>
-      </section>
-      <section>
-        <h2>Kunci aplikasi</h2>
+        <Toggle on={c.withData} onChange={v => set({ withData: v })} label="Beri AI akses data (jadwal & keuangan)" />
+        <div className="tag">Key disimpan lokal di perangkat. Dengan akses data, AI bisa mencatat transaksi, membuat tugas, dan membaca angka langsung.</div>
+      </Sec>
+
+      <Sec icon={<Ic.invest size={17} />} title="Pasar & harga" desc="Binance (opsional)">
+        <input type="password" value={c.binanceKey || ''} onChange={e => set({ binanceKey: e.target.value })} placeholder="API key Binance (opsional)" />
+        <div className="tag">Tanpa key pun data publik tetap jalan; key hanya menaikkan batas rate. Hanya dipakai di APK.</div>
+      </Sec>
+
+      <Sec icon={<Ic.eye size={17} />} title="Keamanan">
         <input type="password" inputMode="numeric" value={pin} onChange={e => setPin(e.target.value)} placeholder="PIN baru (kosongkan untuk mematikan)" />
         <button className="btn alt" onClick={async () => { if (pin) localStorage.setItem('pin', await sha(pin)); else localStorage.removeItem('pin'); setPin(''); setMsg(pin ? 'PIN aktif.' : 'PIN dimatikan.'); }}>Simpan PIN</button>
-      </section>
-      <section>
-        <h2>Backup data</h2>
-        <button className="btn alt" onClick={backup}>Ekspor backup (JSON)</button>
-        <input type="file" accept=".json,application/json" onChange={e => restore(e.target.files?.[0])} />
-        <div className="tag">Memulihkan akan mengganti semua data saat ini. API key tidak ikut di backup.</div>
+      </Sec>
+
+      <Sec icon={<Ic.wallet size={17} />} title="Data & backup">
+        <div className="g2">
+          <button className="btn alt" onClick={backup}>Ekspor JSON</button>
+          <label className="btnRestore">
+            Pulihkan JSON
+            <input type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={e => restore(e.target.files?.[0])} />
+          </label>
+        </div>
+        <div className="tag">Memulihkan mengganti semua data saat ini. API key tidak ikut di-backup.</div>
         {msg && <div className="pos">{msg}</div>}
-      </section>
+      </Sec>
     </>
   );
 }
