@@ -71,10 +71,10 @@ export default function Settings() {
       <Sec icon={<Deco.moon width={16} />} title="Tampilan harian" desc="Jam, cuaca & wallpaper">
         <input value={c.city || ''} onChange={e => set({ city: e.target.value })} placeholder="Nama kota (mis. Jakarta)" />
         <div className="g2">
-          <input inputMode="decimal" value={c.lat ?? ''} onChange={e => set({ lat: e.target.value === '' ? undefined : +e.target.value })} placeholder="Latitude (mis. -6.2)" />
-          <input inputMode="decimal" value={c.lon ?? ''} onChange={e => set({ lon: e.target.value === '' ? undefined : +e.target.value })} placeholder="Longitude (mis. 106.8)" />
+          <input inputMode="decimal" value={c.lat ?? ''} onChange={e => set({ lat: e.target.value === '' ? undefined : +e.target.value })} placeholder="Lat (mis. -6.2)" />
+          <input inputMode="decimal" value={c.lon ?? ''} onChange={e => set({ lon: e.target.value === '' ? undefined : +e.target.value })} placeholder="Long (mis. 106.8)" />
         </div>
-        <input inputMode="numeric" value={c.tzOffset ?? ''} onChange={e => set({ tzOffset: e.target.value === '' ? undefined : +e.target.value })} placeholder="Offset zona waktu menit (420 = WIB). Kosong = ikut perangkat" />
+        <input inputMode="numeric" value={c.tzOffset ?? ''} onChange={e => set({ tzOffset: e.target.value === '' ? undefined : +e.target.value })} placeholder="Offset zona waktu menit (420 = WIB)" />
         <div className="tag">Cuaca open-meteo (gratis). Cari lat/long di latlong.net — Jakarta -6.2/106.8, Denpasar -8.65/115.22.</div>
         <Toggle on={wp} onChange={v => { setWp(v); applyWallpaper(v); }} label="Wallpaper anime (siang/malam otomatis)" />
       </Sec>

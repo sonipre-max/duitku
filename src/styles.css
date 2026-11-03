@@ -633,3 +633,23 @@ html[data-time='day'] body.wp .qaBtn{color:#0f172a}
 .setToggle.on .tknob::after{left:20px}
 .btnRestore{display:flex;align-items:center;justify-content:center;font:inherit;padding:13px;border-radius:calc(var(--radius) - 4px);font-weight:700;margin:4px 0;background:var(--soft);color:var(--ac);cursor:pointer}
 .loading { text-align: center; padding: 40px 0; opacity: .5; }
+
+
+/* ── Konsistensi tema: semua kartu ikut glass tema, bukan putih hardcode ── */
+html[data-time='night'] section,html[data-time='night'] .qaBtn,html[data-time='night'] .qsItem,html[data-time='night'] .qsNote,
+html[data-time='night'] .sheet,html[data-time='night'] .mottoBanner,html[data-time='night'] nav.floatnav,
+html[data-time='night'] .msg.assistant,html[data-time='night'] .modeSeg,html[data-time='night'] .icobtn,html[data-time='night'] .chatAva{
+  background:linear-gradient(160deg,rgba(30,27,75,.55),rgba(30,27,75,.38)) !important;
+  border-color:rgba(148,163,184,.3) !important;
+  box-shadow:0 0 0 1px rgba(148,163,184,.1) inset,0 0 22px -6px rgba(124,77,255,.5),0 10px 26px -12px rgba(0,0,0,.6) !important}
+html[data-time='day'] section,html[data-time='day'] .qaBtn,html[data-time='day'] .qsItem,html[data-time='day'] .qsNote,
+html[data-time='day'] .mottoBanner,html[data-time='day'] .msg.assistant,html[data-time='day'] .modeSeg,html[data-time='day'] .icobtn,html[data-time='day'] .chatAva{
+  background:linear-gradient(160deg,rgba(255,255,255,.32),rgba(255,255,255,.14)) !important;
+  border-color:rgba(255,255,255,.5) !important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.12) inset,0 0 22px -6px rgba(255,255,255,.45),0 10px 26px -12px rgba(0,0,0,.3) !important}
+/* Gold & Cyber: tinta teks ikut tema, jangan putih/hitam hardcode */
+[data-theme='gold'] .setHead b,[data-theme='gold'] .tdTxt,[data-theme='gold'] .agTxt b,[data-theme='gold'] .ivBalance .ivTotal{color:var(--ink)}
+[data-theme='cyber'] .setHead b,[data-theme='cyber'] .tdTxt,[data-theme='cyber'] .agTxt b{color:var(--ink)}
+/* kontras teks bantuan di wallpaper */
+body.wp .tag,body.wp .setHead span,body.wp .tdesc{text-shadow:0 1px 4px rgba(255,255,255,.6)}
+html[data-time='night'] body.wp .tag,html[data-time='night'] body.wp .setHead span{text-shadow:0 1px 4px rgba(0,0,0,.6)}
