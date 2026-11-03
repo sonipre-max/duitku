@@ -107,6 +107,7 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
 
   return (
     <>
+      <div className="homeCol">
       <div className={'dashTop' + (night ? ' night' : '')}>
         <div className="dashGreet">
           <div className="avatar"><Deco.avatar width={30} /><span className="crown"><Deco.crown width={16} /></span></div>
@@ -178,6 +179,7 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
         <span className="mIco">{night ? <Deco.lotus width={22} /> : <Deco.compass width={22} />}</span>
         <div className="mTxt"><b>{banner[0]}</b><span>{banner[1]}</span></div>
         <span className="chev">›</span>
+      </div>
       </div>
     </>
   );
