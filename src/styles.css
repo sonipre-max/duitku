@@ -79,8 +79,8 @@ body.wp .wpbg::after{
   content:""; position:absolute; inset:0;
   background:linear-gradient(180deg, rgba(0,0,0,.14), rgba(0,0,0,.38));
 }
-html.wp[data-time='night'] body .wpbg{background-image:url(/night.jpg);opacity:.9}
-html.wp[data-time='day'] body .wpbg{background-image:url(/day.jpg);opacity:.9}
+html.wp[data-time='night'] body .wpbg{background-image:url(./night.jpg);opacity:.9}
+html.wp[data-time='day'] body .wpbg{background-image:url(./day.jpg);opacity:.9}
 @keyframes drift{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(2%,2%,0) scale(1.06)}}
 @media (prefers-reduced-motion:reduce){body::before{animation:none}}
 /* scrollbar halus, bukan scrollbar OS kotak-kotak */

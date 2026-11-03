@@ -31,6 +31,7 @@ export function applyWallpaper(on: boolean) {
   }
   if (!on && el) el.remove();
   document.body.classList.toggle('wp', on);
+  document.documentElement.classList.toggle('wp', on); // selector CSS butuh di html
 }
 export const wallOn = () => localStorage.getItem('wp') === '1';
 export const setTimeOfDay = (night: boolean) => {
