@@ -23,7 +23,7 @@ export default function Todo() {
   const y = cur.getFullYear(), mo = cur.getMonth();
   const lead = cur.getDay(), days = new Date(y, mo + 1, 0).getDate();
   const cells = [...Array(lead).fill(null), ...Array.from({ length: days }, (_, i) => ymd(new Date(y, mo, i + 1)))];
-  const list = tasks.filter(t => occurs(t, sel)).sort((a, b) => a.priority - b.priority || (a.time || '99').localeCompare(b.time || '99'));
+  const list = tasks.filter(t => occurs(t, sel)).sort((a, b) => +isDone(a, sel) - +isDone(b, sel) || a.priority - b.priority || (a.time || '99').localeCompare(b.time || '99'));
 
   const add = async () => {
     if (!f.title.trim()) return;
