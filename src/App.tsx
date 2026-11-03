@@ -54,7 +54,6 @@ export default function App() {
         <h1>{title}</h1>
         <div className="topbtns">
           <button className={'icobtn' + (tab === 'ai' && !cfg ? ' on' : '')} title="Chat AI" onClick={() => { setTab('ai'); setCfg(false); }}><Ic.ai size={20} /></button>
-          <button className={'icobtn' + (cfg ? ' on' : '')} title="Setelan" onClick={() => setCfg(!cfg)}><Ic.settings size={20} /></button>
         </div>
       </div>
       <main>
@@ -65,7 +64,9 @@ export default function App() {
       </main>
       <nav className="floatnav">{TABS.map(([k, l, ico]) => { const NI = (Ic as any)[ico]; return (
         <button key={k} className={tab === k && !cfg ? 'on' : ''} onClick={() => { setTab(k); setCfg(false); }}><span className="nico"><NI size={19} strokeWidth={2.2} /></span><span className="nlab">{l}</span></button>
-      ); })}</nav>
+      ); })}
+        <button className={cfg ? 'on' : ''} onClick={() => setCfg(!cfg)} aria-label="Setelan"><span className="nico"><Ic.settings size={19} strokeWidth={2.2} /></span><span className="nlab">Setelan</span></button>
+      </nav>
     </div>
   );
 }

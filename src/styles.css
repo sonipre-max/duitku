@@ -510,6 +510,7 @@ nav.floatnav button .nico{font-size:17px;line-height:1;filter:grayscale(1);opaci
 nav.floatnav button.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;box-shadow:0 6px 16px -6px var(--ac)}
 nav.floatnav button.on .nico{filter:none;opacity:1}
 nav.floatnav button.on .nlab{color:#fff}
+nav.floatnav button{padding:6px 10px;min-width:52px}
 html[data-time='night'] nav.floatnav{background:rgba(30,27,75,.65);border-color:rgba(148,163,184,.3)}
 html[data-time='night'] nav.floatnav button{color:rgba(226,232,240,.7)}
 html[data-time='night'] nav.floatnav button.on{background:linear-gradient(135deg,#7c4dff,#5e35b1);color:#fff}
