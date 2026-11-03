@@ -49,6 +49,7 @@
 
 *{box-sizing:border-box}
 html,body,#root{height:100%;margin:0}
+html{overflow:hidden} /* keyboard Android: body gak ikut resize-acak */
 body{
   background:var(--bg); color:var(--ink);
   font:16px/1.5 "Plus Jakarta Sans","SF Pro Display","Segoe UI",Roboto,sans-serif;
