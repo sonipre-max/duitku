@@ -68,6 +68,7 @@ export default function Todo() {
 
       <section>
         <h2>Tugas baru</h2>
+        <form onSubmit={e => { e.preventDefault(); add(); }}>
         <input placeholder="Apa yang perlu dilakukan?" value={f.title} onChange={e => setF({ ...f, title: e.target.value })} />
         <div className="g2">
           <input type="time" value={f.time} onChange={e => setF({ ...f, time: e.target.value })} />
@@ -76,8 +77,9 @@ export default function Todo() {
         <select value={f.repeat} onChange={e => setF({ ...f, repeat: e.target.value })}>
           <option value="none">Sekali</option><option value="daily">Tiap hari</option><option value="weekly">Tiap minggu</option><option value="monthly">Tiap bulan</option>
         </select>
-        <button className="btn" onClick={add}>Tambah tugas</button>
+        <button className="btn" type="submit">Tambah tugas</button>
         <div className="tag">Isi jam untuk mendapat pengingat notifikasi.</div>
+        </form>
       </section>
     </>
   );
