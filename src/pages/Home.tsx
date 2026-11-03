@@ -120,7 +120,16 @@ export default function Home({ go }: { go: (t: string) => void }) {
         const r = (e.currentTarget as SVGElement).getBoundingClientRect();
         setHi(Math.min(m30.length - 1, Math.max(0, Math.round(((e.clientX - r.left) / r.width) * (m30.length - 1)))));
       }}
-      onMouseLeave={() => setHi(-1)}>
+      onMouseLeave={() => setHi(-1)}
+      onTouchStart={e => {
+        const r = (e.currentTarget as SVGElement).getBoundingClientRect();
+        setHi(Math.min(m30.length - 1, Math.max(0, Math.round(((e.touches[0].clientX - r.left) / r.width) * (m30.length - 1)))));
+      }}
+      onTouchMove={e => {
+        const r = (e.currentTarget as SVGElement).getBoundingClientRect();
+        setHi(Math.min(m30.length - 1, Math.max(0, Math.round(((e.touches[0].clientX - r.left) / r.width) * (m30.length - 1)))));
+      }}
+      onTouchEnd={() => setHi(-1)}>
       <defs>
         <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="currentColor" stopOpacity=".35" />
