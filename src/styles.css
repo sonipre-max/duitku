@@ -444,6 +444,6 @@ nav.floatnav button.on .nlab{color:#fff}
 html[data-time='night'] nav.floatnav{background:rgba(30,27,75,.65);border-color:rgba(148,163,184,.3)}
 html[data-time='night'] nav.floatnav button{color:rgba(226,232,240,.7)}
 html[data-time='night'] nav.floatnav button.on{background:linear-gradient(135deg,#7c4dff,#5e35b1);color:#fff}
-main{padding-bottom:86px}
+main{padding-bottom:108px !important}
 
 .loading { text-align: center; padding: 40px 0; opacity: .5; }
