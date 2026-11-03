@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import Home from './pages/Home';
-import Finance from './pages/Finance';
-import Todo from './pages/Todo';
-import Invest from './pages/Invest';
-import AI from './pages/AI';
-import Settings from './pages/Settings';
+const Finance = lazy(() => import('./pages/Finance'));
+const Todo = lazy(() => import('./pages/Todo'));
+const Invest = lazy(() => import('./pages/Invest'));
+const AI = lazy(() => import('./pages/AI'));
+const Settings = lazy(() => import('./pages/Settings'));
 import { db } from './db';
 import { runAll } from './dca';
 
@@ -53,8 +53,10 @@ export default function App() {
         </div>
       </div>
       <main>
-        {cfg ? <Settings /> : tab === 'home' ? <Home go={setTab} /> : tab === 'uang' ? <Finance />
-          : tab === 'tugas' ? <Todo /> : tab === 'dca' ? <Invest /> : <AI />}
+        <Suspense fallback={<div className="loading">…</div>}>
+          {cfg ? <Settings /> : tab === 'home' ? <Home go={setTab} /> : tab === 'uang' ? <Finance />
+            : tab === 'tugas' ? <Todo /> : tab === 'dca' ? <Invest /> : <AI />}
+        </Suspense>
       </main>
       <nav>{TABS.map(([k, l]) => <button key={k} className={tab === k && !cfg ? 'on' : ''} onClick={() => { setTab(k); setCfg(false); }}>{l}</button>)}</nav>
     </div>
