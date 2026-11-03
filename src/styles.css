@@ -662,3 +662,24 @@ html[data-time='night'] .themegrid .tdesc{color:rgba(226,232,240,.75)}
 html[data-time='night'] .themegrid .themecard.on{border-color:var(--ac2) !important;box-shadow:0 0 18px -4px var(--ac)}
 /* napas bawah: konten settings tidak nempel nav */
 main{padding-bottom:118px !important}
+
+
+/* ── Gold & Cyber: tint aksen tema masuk ke kartu konten beranda ── */
+[data-theme='gold'] section,[data-theme='gold'] .mottoBanner{
+  background:linear-gradient(160deg,rgba(255,240,200,.5),rgba(255,213,128,.28)) !important;
+  border-color:rgba(212,175,55,.6) !important;
+  box-shadow:0 0 0 1px rgba(212,175,55,.15) inset,0 0 24px -6px rgba(212,175,55,.55),0 10px 26px -12px rgba(0,0,0,.3) !important}
+[data-theme='gold'] .dashLink{color:#b8860b !important;font-weight:600}
+[data-theme='gold'] .agSwipe,[data-theme='gold'] .qsItem{background:rgba(255,244,214,.45) !important;border-color:rgba(212,175,55,.45) !important}
+[data-theme='cyber'] section,[data-theme='cyber'] .mottoBanner{
+  background:linear-gradient(160deg,rgba(88,28,135,.5),rgba(30,20,60,.34)) !important;
+  border-color:rgba(168,85,247,.55) !important;
+  box-shadow:0 0 0 1px rgba(168,85,247,.2) inset,0 0 24px -6px rgba(168,85,247,.6),0 10px 26px -12px rgba(0,0,0,.5) !important}
+[data-theme='cyber'] .agSwipe,[data-theme='cyber'] .qsItem{background:rgba(50,25,90,.45) !important;border-color:rgba(168,85,247,.4) !important}
+[data-theme='cyber'] .dashLink{color:#c084fc !important;font-weight:600}
+[data-theme='cyber'] h2{text-shadow:0 0 14px rgba(168,85,247,.8)}
+/* label pemasukan kontras (dilaporkan pudar) */
+.qsItem .tag,body.wp .qsItem .tag{text-shadow:0 1px 4px rgba(255,255,255,.7);font-weight:600}
+html[data-time='night'] .qsItem .tag{text-shadow:0 1px 4px rgba(0,0,0,.7)}
+/* tanggal pill: bg lebih pekat biar gak tembus karakter wallpaper */
+.dateChip{background:rgba(0,0,0,.28) !important;backdrop-filter:blur(6px)}
