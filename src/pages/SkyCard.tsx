@@ -1,8 +1,11 @@
-import { greeting, mood, useClock, useSky } from '../sky';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../db';
+import { today, idr } from '../util';
+import { useSky, useClock } from '../sky';
 import { applyWallpaper, setTimeOfDay, wallOn } from '../theme';
 
-// Animasi langit: matahari/awan/bulan+bintang, murni CSS
+// Dashboard ala mockup: greeting avatar+jam besar+cuaca, band wallpaper, ringkasan, agenda, banner motivasi
 export default function SkyCard() {
   const sky = useSky();
   const clock = useClock(sky && sky.tzOffset !== 0 ? sky.tzOffset : undefined);
@@ -14,33 +17,113 @@ export default function SkyCard() {
     if (sky) setTimeOfDay(night);
   }, [night, sky]);
 
+  const dayTxs = useLiveQuery(() => db.txs.where('date').equals(today()).toArray(), []) || [];
+  const tasksToday = useLiveQuery(() => db.tasks.where('date').equals(today()).toArray(), []) || [];
+  const accounts = useLiveQuery(() => db.accounts.toArray(), []) || [];
+  const plans = useLiveQuery(() => db.plans.toArray(), []) || [];
+
   if (!sky) return null;
   const rain = sky.weather === 'hujan';
   const cloudy = sky.weather === 'berawan' || sky.weather === 'malam-berawan';
+
+  const saldo = accounts.reduce((s, a) => s + a.balance0, 0)
+    + dayTxs.reduce((s, t) => s + (t.type === 'in' ? t.amount : -t.amount), 0);
+  const spent = dayTxs.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
+  const doneN = tasksToday.filter(t => t.done).length;
+
   const hhmm = `${String(clock.getHours()).padStart(2, '0')}.${String(clock.getMinutes()).padStart(2, '0')}`;
+  const dstr = clock.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const greet = night ? 'Selamat Malam' : sky.period === 'pagi' ? 'Selamat Pagi' : sky.period === 'siang' ? 'Selamat Siang' : 'Selamat Sore';
+  const emo = night ? '🌙' : '☀️';
+  const motto = night
+    ? 'Istirahat yang cukup, besok kita lanjut lagi!'
+    : sky.period === 'pagi' ? 'Semangat menjalani hari baru! Langkah kecil, hasil besar.'
+    : sky.period === 'siang' ? 'Tengah hari, tetap fokus dan semangat ya, Bos!'
+    : 'Sore menjelang, hampir sampai. Tetap semangat!';
+  const banner = night ? ['Istirahat dulu, Bos..', 'Besok kita gas lagi! 💪', '✨'] : ['Terus melangkah, Bos!', 'Hari ini pasti lebih baik!', '🧭'];
 
   return (
-    <div className={'skyCard' + (night ? ' night' : '')}>
-      {/* langit */}
-      <div className="skyScene">
-        {/* bintang (malam) */}
-        {night && <div className="stars">{[...Array(14)].map((_, i) => <i key={i} className="star" style={{ left: `${(i * 37 + 13) % 96}%`, top: `${(i * 53 + 9) % 70}%`, animationDelay: `${i * .35}s` }} />)}</div>}
-        {/* matahari / bulan */}
-        <div className={night ? 'moon' : 'sun'}>{night ? '🌙' : '☀️'}</div>
-        {/* awan */}
-        {(cloudy || rain) && <>
-          <div className="cloud c1">☁️</div>
-          <div className="cloud c2">☁️</div>
-          {rain && <div className="rain">{[...Array(6)].map((_, i) => <i key={i} style={{ left: `${15 + i * 14}%`, animationDelay: `${i * .3}s` }} />)}</div>}
-        </>}
+    <>
+      <div className={'dashTop' + (night ? ' night' : '')}>
+        <div className="dashGreet">
+          <div className="avatar">👦<span className="crown">👑</span></div>
+          <div>
+            <b>{greet}, Bos! {emo}</b>
+            <div className="motto">{motto}</div>
+          </div>
+        </div>
+        <div className="dashHero">
+          <div className="clockBig">
+            <b>{hhmm}</b>
+            <span className="dateChip">📅 {dstr}</span>
+          </div>
+          <div className="wcard">
+            <div className="wIcon">{night ? (cloudy ? '☁️' : '🌙') : (cloudy ? '🌤️' : '☀️')}</div>
+            <div className="wBody">
+              <b>{Math.round(sky.temp)}°C <span className="wCity">📍 {sky.city}</span></b>
+              <div className="wCond">{rain ? 'Hujan' : cloudy ? 'Cerah berawan' : night ? 'Cerah' : 'Cerah'}</div>
+              <div className="wSub">{sky.forecast}</div>
+            </div>
+          </div>
+        </div>
       </div>
-      {/* teks */}
-      <div className="skyText">
-        <div className="skyGreet">{greeting(sky.period)}</div>
-        <div className="skyInfo">sekarang jam <b>{hhmm}</b> {sky.temp ? Number.isNaN(sky.temp) ? '' : `· ${sky.city} ${Math.round(sky.temp)}°C` : `· ${sky.city}`}</div>
-        <div className="skySub">Cuaca hari ini <b>{sky.weather === 'hujan' ? 'hujan' : sky.weather.includes('cerah') ? 'cerah' : 'berawan'}</b> {sky.forecast}.</div>
-        <div className="skyMood">{mood(sky.period)}</div>
+
+      <div className={'dashBand' + (night ? ' night' : '')} aria-hidden>
+        <img src={night ? './night.jpg' : './day.jpg'} alt="" loading="eager" />
       </div>
-    </div>
+
+      <section className="dashCard">
+        <div className="dashHead">
+          <span className="starBadge">⭐</span>
+          <b>Ringkasan Hari Ini</b>
+        </div>
+        <div className="dashStats">
+          <div className="dstat">
+            <span className="dico orange">👛</span>
+            <b>{idr(saldo)}</b>
+            <span className="dlab">Saldo Total</span>
+          </div>
+          <div className="dstat">
+            <span className="dico blue">📊</span>
+            <b>{idr(spent)}</b>
+            <span className="dlab">Pengeluaran Hari Ini</span>
+          </div>
+          <div className="dstat">
+            <span className="dico green">✅</span>
+            <b>{doneN}</b>
+            <span className="dlab">Tugas Selesai</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="dashCard agenda">
+        <div className="dashHead">
+          <span className="starBadge blue">📅</span>
+          <b>Agenda Hari Ini</b>
+        </div>
+        {tasksToday.slice(0, 4).map(t => (
+          <div className="agRow" key={t.id}>
+            <span className={'adot' + (t.done ? ' ok' : '')}>{t.done ? '●' : '○'}</span>
+            <span className="agIco">{t.priority === 3 ? '🎓' : t.priority === 2 ? '📖' : '🏋️'}</span>
+            <div className="agTxt">
+              <b>{t.title}</b>
+              <span>{t.time || 'Sepanjang hari'}</span>
+            </div>
+          </div>
+        ))}
+        {!tasksToday.length && (
+          <div className="agRow">
+            <span className="adot">○</span><span className="agIco">📝</span>
+            <div className="agTxt"><b>Belum ada agenda</b><span>Tambah di tab Tugas, yuk!</span></div>
+          </div>
+        )}
+      </section>
+
+      <div className={'mottoBanner' + (night ? ' night' : '')}>
+        <span className="mIco">{banner[2]}</span>
+        <div className="mTxt"><b>{banner[0]}</b><span>{banner[1]}</span></div>
+        <span className="chev">›</span>
+      </div>
+    </>
   );
 }

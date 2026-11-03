@@ -359,4 +359,54 @@ input,select,textarea,button{transition:border-color .15s, background .15s, tran
 .skyMood{font-size:12px;opacity:.85;margin-top:5px;font-style:italic}
 @media (prefers-reduced-motion:reduce){.sun,.moon,.cloud,.star,.rain i{animation:none !important}}
 
+/* ── Dashboard mockup: avatar/jam/cuaca + band wallpaper + ringkasan/agenda ── */
+.dashTop{padding:2px 2px 10px;color:#fff}
+.dashGreet{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.dashGreet .avatar{position:relative;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:30px;border:2px solid rgba(255,255,255,.5);flex-shrink:0}
+.dashGreet .crown{position:absolute;right:-6px;bottom:-4px;font-size:16px}
+.dashGreet b{font-size:17px;text-shadow:0 1px 5px rgba(0,0,0,.4);display:block}
+.dashGreet .motto{font-size:12px;font-style:italic;opacity:.92;margin-top:2px;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+.dashHero{display:flex;align-items:stretch;gap:10px}
+.clockBig{flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.clockBig b{font-size:44px;font-weight:800;letter-spacing:-.02em;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,.35);font-variant-numeric:tabular-nums}
+.dateChip{margin-top:7px;align-self:flex-start;background:rgba(255,255,255,.22);backdrop-filter:blur(8px);border-radius:99px;padding:4px 10px;font-size:11.5px}
+.wcard{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.16);backdrop-filter:blur(14px) saturate(1.4);border:1px solid rgba(255,255,255,.35);border-radius:18px;padding:12px 14px;min-width:0;box-shadow:0 1px 1px rgba(255,255,255,.4) inset,0 10px 26px -12px rgba(0,0,0,.5)}
+.wcard .wIcon{font-size:30px}
+.wcard .wBody b{font-size:19px}
+.wcard .wCity{font-size:11px;font-weight:400;opacity:.9}
+.wcard .wCond{font-size:12.5px;font-weight:600;margin-top:1px}
+.wcard .wSub{font-size:10.5px;opacity:.85;max-width:150px}
+.dashBand{border-radius:20px;overflow:hidden;margin:4px 0 12px;box-shadow:0 12px 30px -14px rgba(0,0,0,.55);position:relative}
+.dashBand img{width:100%;height:150px;object-fit:cover;display:block}
+.dashBand.night img{filter:brightness(.92)}
+.dashCard{margin-bottom:12px}
+.dashCard .dashHead{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.dashCard .dashHead b{flex:1;font-size:14.5px}
+.starBadge{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:15px}
+.starBadge.blue{background:rgba(59,130,246,.2)}
+.dashStats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.dstat{display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 4px;text-align:center;min-width:0}
+.dstat+.dstat{border-left:1px solid var(--line)}
+.dstat .dico{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.dico.orange{background:rgba(251,146,60,.2)}
+.dico.blue{background:rgba(59,130,246,.2)}
+.dico.green{background:rgba(34,197,94,.2)}
+.dstat b{font-size:14.5px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.dstat .dlab{font-size:10px;color:var(--mute);line-height:1.25}
+.agRow{display:flex;align-items:center;gap:10px;padding:9px 2px}
+.agRow+.agRow{border-top:1px solid var(--line)}
+.agRow .adot{font-size:15px;color:var(--mute);flex-shrink:0}
+.agRow .adot.ok{color:var(--pos)}
+.agRow .agIco{width:34px;height:34px;border-radius:10px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.agRow .agTxt{flex:1;min-width:0;display:flex;flex-direction:column}
+.agRow .agTxt b{font-size:13.5px}
+.agRow .agTxt span{font-size:11px;color:var(--mute)}
+.mottoBanner{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.16);backdrop-filter:blur(14px) saturate(1.4);border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:11px 16px;margin-bottom:12px;box-shadow:0 1px 1px rgba(255,255,255,.35) inset}
+.mottoBanner .mIco{font-size:20px}
+.mottoBanner .mTxt{flex:1;min-width:0}
+.mottoBanner .mTxt b{display:block;font-size:13.5px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+.mottoBanner .mTxt span{font-size:11px;opacity:.9;color:#fff}
+.mottoBanner .chev{color:#fff;opacity:.7;font-size:18px}
+.mottoBanner.night{background:rgba(30,27,75,.5);border-color:rgba(148,163,184,.3)}
+
 .loading { text-align: center; padding: 40px 0; opacity: .5; }
