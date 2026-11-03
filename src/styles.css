@@ -683,3 +683,20 @@ main{padding-bottom:118px !important}
 html[data-time='night'] .qsItem .tag{text-shadow:0 1px 4px rgba(0,0,0,.7)}
 /* tanggal pill: bg lebih pekat biar gak tembus karakter wallpaper */
 .dateChip{background:rgba(0,0,0,.28) !important;backdrop-filter:blur(6px)}
+
+
+/* ── Gold & Cyber: tint juga di kartu hero/greeting/cuaca + label pemasukan pekat ── */
+[data-theme='gold'] .dashHero,[data-theme='gold'] .wcard,[data-theme='gold'] .dashGreet{
+  background:linear-gradient(160deg,rgba(255,240,200,.55),rgba(255,213,128,.3)) !important;
+  border-color:rgba(212,175,55,.6) !important;
+  box-shadow:0 0 0 1px rgba(212,175,55,.15) inset,0 0 24px -6px rgba(212,175,55,.55) !important}
+[data-theme='cyber'] .dashHero,[data-theme='cyber'] .wcard,[data-theme='cyber'] .dashGreet{
+  background:linear-gradient(160deg,rgba(88,28,135,.55),rgba(30,20,60,.38)) !important;
+  border-color:rgba(168,85,247,.55) !important;
+  box-shadow:0 0 0 1px rgba(168,85,247,.2) inset,0 0 24px -6px rgba(168,85,247,.6) !important}
+/* label Pemasukan/Pengeluaran: putih solid + shadow, kontras kuat */
+.qsTxt span{color:#fff !important;font-weight:700;text-shadow:0 1px 5px rgba(0,0,0,.55),0 0 10px rgba(0,0,0,.35)}
+[data-theme='gold'] .qsTxt span{color:#5c4400 !important;text-shadow:0 1px 3px rgba(255,255,255,.7)}
+/* subteks carousel jangan pudar */
+.agRow.empty span,.agTxt span{opacity:1 !important;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+[data-theme='gold'] .agRow.empty span,[data-theme='gold'] .agTxt span{color:#5c4400;text-shadow:none}
