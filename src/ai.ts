@@ -1,5 +1,5 @@
 export type Msg = { role: 'user' | 'assistant'; content: string };
-export type Cfg = { provider: 'openrouter' | 'gemini'; key: string; model: string; withData: boolean; name?: string; binanceKey?: string };
+export type Cfg = { provider: 'openrouter' | 'gemini'; key: string; model: string; withData: boolean; name?: string; binanceKey?: string; city?: string; lat?: number; lon?: number; tzOffset?: number };
 
 export const loadCfg = (): Cfg => ({
   provider: 'openrouter', key: '', model: 'openrouter/auto', withData: false,

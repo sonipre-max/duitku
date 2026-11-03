@@ -5,6 +5,7 @@ import { db, getKv } from '../db';
 import { idr, today } from '../util';
 import { loadCfg } from '../ai';
 import { useTheme } from '../theme';
+import SkyCard from './SkyCard';
 
 const QUICK = [
   { go: 'uang', icon: '💸', label: 'Catat Keuangan', short: 'Keuangan', c: '#3b82f6' },
@@ -262,6 +263,7 @@ export default function Home({ go }: { go: (t: string) => void }) {
           <div className="wchip">☀️ 28°C · Denpasar</div>
         </div>
       )}
+      <SkyCard />
       <section className="hero">
         {HeroTitle}
         {HeroChart}

@@ -54,6 +54,16 @@ export default function Settings() {
         <div className="tag">Dipakai untuk data harga pasar (ticker 24 jam & grafik). Tanpa key pun data publik tetap jalan; key hanya menaikkan batas rate. Key disimpan lokal di perangkat ini.</div>
       </section>
       <section>
+        <h2>Ringkasan harian (jam & cuaca)</h2>
+        <input value={c.city || ''} onChange={e => set({ city: e.target.value })} placeholder="Nama kota (mis. Jakarta)" />
+        <div className="g2">
+          <input inputMode="decimal" value={c.lat ?? ''} onChange={e => set({ lat: e.target.value === '' ? undefined : +e.target.value })} placeholder="Latitude (mis. -6.2)" />
+          <input inputMode="decimal" value={c.lon ?? ''} onChange={e => set({ lon: e.target.value === '' ? undefined : +e.target.value })} placeholder="Longitude (mis. 106.8)" />
+        </div>
+        <input inputMode="numeric" value={c.tzOffset ?? ''} onChange={e => set({ tzOffset: e.target.value === '' ? undefined : +e.target.value })} placeholder="Offset zona waktu menit (mis. 420 = WIB). Kosong = ikut perangkat" />
+        <div className="tag">Cuaca dari open-meteo (gratis, tanpa key). Cari latitude/longitude kotamu di latlong.net. Contoh: Jakarta -6.2 / 106.8, Denpasar -8.65 / 115.22.</div>
+      </section>
+      <section>
         <h2>Model AI</h2>
         <select value={c.provider} onChange={e => set({ provider: e.target.value as any, model: e.target.value === 'gemini' ? 'gemini-2.0-flash' : 'openrouter/auto' })}>
           <option value="openrouter">OpenRouter</option><option value="gemini">Google Gemini</option>
