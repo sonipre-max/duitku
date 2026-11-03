@@ -653,3 +653,12 @@ html[data-time='day'] .mottoBanner,html[data-time='day'] .msg.assistant,html[dat
 /* kontras teks bantuan di wallpaper */
 body.wp .tag,body.wp .setHead span,body.wp .tdesc{text-shadow:0 1px 4px rgba(255,255,255,.6)}
 html[data-time='night'] body.wp .tag,html[data-time='night'] body.wp .setHead span{text-shadow:0 1px 4px rgba(0,0,0,.6)}
+
+
+/* Night: kartu tema picker juga ikut dark glass, teks terang */
+html[data-time='night'] .themegrid .themecard{background:linear-gradient(160deg,rgba(30,27,75,.55),rgba(30,27,75,.38)) !important;border-color:rgba(148,163,184,.3) !important}
+html[data-time='night'] .themegrid .tname{color:#f1f5fb}
+html[data-time='night'] .themegrid .tdesc{color:rgba(226,232,240,.75)}
+html[data-time='night'] .themegrid .themecard.on{border-color:var(--ac2) !important;box-shadow:0 0 18px -4px var(--ac)}
+/* napas bawah: konten settings tidak nempel nav */
+main{padding-bottom:118px !important}
