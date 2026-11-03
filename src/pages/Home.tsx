@@ -254,7 +254,7 @@ export default function Home({ go }: { go: (t: string) => void }) {
   /* ═══ DARK PRO & LIGHT: donut portofolio + ringkasan 3 stat ═══ */
   return (
     <>
-      {theme === 'light' && (
+      {theme === 'light' && false && (
         <div className="hello">
           <div>
             <b>Halo, {name} 👋</b>
