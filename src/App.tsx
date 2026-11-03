@@ -28,7 +28,7 @@ function Lock({ onOk }: { onOk: () => void }) {
   );
 }
 
-const TABS = [['home', 'Beranda'], ['uang', 'Uang'], ['tugas', 'Tugas'], ['dca', 'DCA'], ['ai', 'AI']] as const;
+const TABS = [['home', 'Beranda', '🏠'], ['uang', 'Keuangan', '👛'], ['tugas', 'To Do', '✅'], ['dca', 'Investasi', '📈'], ['ai', 'Lainnya', '⋯']] as const;
 
 export default function App() {
   const [locked, setLocked] = useState(!!localStorage.getItem('pin'));
@@ -58,7 +58,7 @@ export default function App() {
             : tab === 'tugas' ? <Todo /> : tab === 'dca' ? <Invest /> : <AI />}
         </Suspense>
       </main>
-      <nav>{TABS.map(([k, l]) => <button key={k} className={tab === k && !cfg ? 'on' : ''} onClick={() => { setTab(k); setCfg(false); }}>{l}</button>)}</nav>
+      <nav className="floatnav">{TABS.map(([k, l, i]) => <button key={k} className={tab === k && !cfg ? 'on' : ''} onClick={() => { setTab(k); setCfg(false); }}><span className="nico">{i}</span><span className="nlab">{l}</span></button>)}</nav>
     </div>
   );
 }

@@ -413,4 +413,37 @@ input,select,textarea,button{transition:border-color .15s, background .15s, tran
 .mottoBanner .chev{color:#fff;opacity:.7;font-size:18px}
 .mottoBanner.night{background:rgba(30,27,75,.5);border-color:rgba(148,163,184,.3)}
 
+/* ── Mode malam (html[data-time=night]): dark glass di seluruh app ── */
+html[data-time='night'] body.wp section:not(.dashCard),
+html[data-time='night'] body.wp input,
+html[data-time='night'] body.wp select,
+html[data-time='night'] body.wp textarea{background:rgba(30,27,75,.45);color:#fff;border-color:rgba(148,163,184,.3)}
+html[data-time='night'] body.wp .dashCard{background:rgba(30,27,75,.5);border-color:rgba(148,163,184,.3)}
+html[data-time='night'] body.wp .dashCard .dashHead b,
+html[data-time='night'] body.wp .agRow .agTxt b{color:#fff}
+html[data-time='night'] body.wp .agRow+.agRow{border-color:rgba(148,163,184,.25)}
+html[data-time='night'] body.wp .agRow .agIco{background:rgba(148,163,184,.18)}
+html[data-time='night'] body.wp .dstat+.dstat{border-color:rgba(148,163,184,.25)}
+html[data-time='night'] body.wp .dstat .dlab{color:rgba(226,232,240,.75)}
+html[data-time='night'] body.wp .top h1{color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.5)}
+html[data-time='night'] body.wp .top .icobtn{background:rgba(30,27,75,.5);border-color:rgba(148,163,184,.3)}
+
+/* ── Floating pill nav ── */
+nav.floatnav{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:12px;
+  display:flex;gap:2px;padding:6px;border-radius:99px;width:auto;max-width:calc(100% - 24px);
+  background:rgba(255,255,255,.75);backdrop-filter:blur(22px) saturate(1.5);
+  border:1px solid rgba(255,255,255,.55);box-shadow:0 14px 34px -12px rgba(0,0,0,.35);
+  z-index:60;
+}
+nav.floatnav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 12px;border-radius:99px;border:none;background:transparent;color:var(--mute);font-size:10px;font-weight:600;min-width:56px}
+nav.floatnav button .nico{font-size:17px;line-height:1;filter:grayscale(1);opacity:.65;transition:.2s}
+nav.floatnav button.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;box-shadow:0 6px 16px -6px var(--ac)}
+nav.floatnav button.on .nico{filter:none;opacity:1}
+nav.floatnav button.on .nlab{color:#fff}
+html[data-time='night'] nav.floatnav{background:rgba(30,27,75,.65);border-color:rgba(148,163,184,.3)}
+html[data-time='night'] nav.floatnav button{color:rgba(226,232,240,.7)}
+html[data-time='night'] nav.floatnav button.on{background:linear-gradient(135deg,#7c4dff,#5e35b1);color:#fff}
+main{padding-bottom:86px}
+
 .loading { text-align: center; padding: 40px 0; opacity: .5; }

@@ -31,6 +31,15 @@ export default function SkyCard() {
   const spent = dayTxs.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
   const doneN = tasksToday.filter(t => t.done).length;
 
+  // % perubahan vs kemarin (pengeluaran & saldo), tugas sederhana
+  const yest = new Date(); yest.setDate(yest.getDate() - 1);
+  const ymd = (d: Date) => d.toISOString().slice(0, 10);
+  const yestTxs = useYestTxs(ymd(yest));
+  const spentY = yestTxs.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
+  const spentPct = spentY > 0 ? ((spent - spentY) / spentY * 100) : 0;
+  const saldoY = saldo - dayTxs.reduce((s, t) => s + (t.type === 'in' ? t.amount : -t.amount), 0);
+  const saldoPct = saldoY > 0 ? ((saldo - saldoY) / saldoY * 100) : 0;
+
   const hhmm = `${String(clock.getHours()).padStart(2, '0')}.${String(clock.getMinutes()).padStart(2, '0')}`;
   const dstr = clock.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
   const greet = night ? 'Selamat Malam' : sky.period === 'pagi' ? 'Selamat Pagi' : sky.period === 'siang' ? 'Selamat Siang' : 'Selamat Sore';
@@ -82,11 +91,13 @@ export default function SkyCard() {
             <span className="dico orange">👛</span>
             <b>{idr(saldo)}</b>
             <span className="dlab">Saldo Total</span>
+            <span className={`pill ${saldoPct >= 0 ? 'pos' : 'neg'}`}>{saldoPct >= 0 ? '▲' : '▼'} {Math.abs(saldoPct).toFixed(1)}%</span>
           </div>
           <div className="dstat">
             <span className="dico blue">📊</span>
             <b>{idr(spent)}</b>
             <span className="dlab">Pengeluaran Hari Ini</span>
+            {spentY > 0 && <span className={`pill ${spentPct <= 0 ? 'pos' : 'neg'}`}>{spentPct >= 0 ? '▲' : '▼'} {Math.abs(spentPct).toFixed(1)}%</span>}
           </div>
           <div className="dstat">
             <span className="dico green">✅</span>
@@ -126,4 +137,8 @@ export default function SkyCard() {
       </div>
     </>
   );
+}
+
+function useYestTxs(date: string) {
+  return useLiveQuery(() => db.txs.where('date').equals(date).toArray(), [date]) || [];
 }
