@@ -609,6 +609,11 @@ html[data-time='night'] .tdEmpty b,html[data-time='night'] .agTxt b,html[data-ti
 html[data-time='night'] .msg.assistant,html[data-time='night'] .sheet,html[data-time='night'] .chatEmpty b,
 html[data-time='night'] .ivBalance .ivTotal,html[data-time='night'] .heroCard,html[data-time='night'] .chip{color:#f1f5fb}
 html[data-time='night'] .tdHeroTxt span,html[data-time='night'] .tag,html[data-time='night'] .tdEmpty span{color:rgba(226,232,240,.7)}
+/* teks sekunder di atas wallpaper terlalu pudar → pertebal */
+body.wp .tag,body.wp .mute,body.wp .setHead span,body.wp .agDate,body.wp input::placeholder,body.wp .tdesc{opacity:1 !important}
+body.wp .tag,body.wp .setHead span,body.wp .agDate,body.wp .tdesc{color:rgba(15,23,42,.75);text-shadow:0 1px 3px rgba(255,255,255,.5)}
+html[data-time='night'] body.wp .tag,html[data-time='night'] body.wp .setHead span,html[data-time='night'] body.wp .agDate,html[data-time='night'] body.wp .tdesc{color:rgba(226,232,240,.85);text-shadow:0 1px 3px rgba(0,0,0,.5)}
+html[data-time='night'] body.wp input::placeholder{color:rgba(226,232,240,.6)}
 html[data-time='night'] .chatWrap .msg.user{color:#fff}
 html[data-time='night'] .cal button,html[data-time='night'] .cal span{color:#e2e8f0}
 html[data-time='day'] body.wp .tdTxt,html[data-time='day'] body.wp .agTxt b,html[data-time='day'] body.wp .tdHeroTxt b{text-shadow:0 1px 4px rgba(0,0,0,.35)}
