@@ -7,6 +7,7 @@ const AI = lazy(() => import('./pages/AI'));
 const Settings = lazy(() => import('./pages/Settings'));
 import { db } from './db';
 import { runAll } from './dca';
+import { Ic } from './icons';
 
 const sha = async (s: string) =>
   [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))]
@@ -28,7 +29,7 @@ function Lock({ onOk }: { onOk: () => void }) {
   );
 }
 
-const TABS = [['home', 'Beranda', '🏠'], ['uang', 'Keuangan', '👛'], ['tugas', 'To Do', '✅'], ['dca', 'Investasi', '📈'], ['ai', 'Lainnya', '⋯']] as const;
+const TABS = [['home', 'Beranda', 'home'], ['uang', 'Keuangan', 'wallet'], ['tugas', 'To Do', 'todo'], ['dca', 'Investasi', 'invest'], ['ai', 'Lainnya', 'ai']] as const;
 
 export default function App() {
   const [locked, setLocked] = useState(!!localStorage.getItem('pin'));
@@ -49,7 +50,7 @@ export default function App() {
       <div className="top">
         <h1>{title}</h1>
         <div className="topbtns">
-          <button className="icobtn" title="Setelan" onClick={() => setCfg(!cfg)}>⚙️</button>
+          <button className="icobtn" title="Setelan" onClick={() => setCfg(!cfg)}><Ic.settings size={20} /></button>
         </div>
       </div>
       <main>
@@ -58,7 +59,9 @@ export default function App() {
             : tab === 'tugas' ? <Todo /> : tab === 'dca' ? <Invest /> : <AI />}
         </Suspense>
       </main>
-      <nav className="floatnav">{TABS.map(([k, l, i]) => <button key={k} className={tab === k && !cfg ? 'on' : ''} onClick={() => { setTab(k); setCfg(false); }}><span className="nico">{i}</span><span className="nlab">{l}</span></button>)}</nav>
+      <nav className="floatnav">{TABS.map(([k, l, ico]) => { const NI = (Ic as any)[ico]; return (
+        <button key={k} className={tab === k && !cfg ? 'on' : ''} onClick={() => { setTab(k); setCfg(false); }}><span className="nico"><NI size={19} strokeWidth={2.2} /></span><span className="nlab">{l}</span></button>
+      ); })}</nav>
     </div>
   );
 }

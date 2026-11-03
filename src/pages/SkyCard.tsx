@@ -4,15 +4,16 @@ import { db } from '../db';
 import { today, idr, addDays, parse } from '../util';
 import { useSky, useClock } from '../sky';
 import { applyWallpaper, setTimeOfDay, wallOn } from '../theme';
+import { Ic, Deco } from '../icons';
 
-const ICO: Record<string, string> = {
-  kuliah: '🎓', belajar: '📖', gym: '🏋️', kerja: '💻', baca: '📖', meditasi: '🪷',
-  meeting: '💻', olahraga: '🏋️', belanja: '🛒', kelas: '🎓', mandarin: '📖', review: '💻', project: '💻',
+const ICO: Record<string, keyof typeof Deco> = {
+  kuliah: 'graduation', belajar: 'book', gym: 'gym', kerja: 'laptop', baca: 'book', meditasi: 'lotus',
+  meeting: 'laptop', olahraga: 'gym', belanja: 'cart', kelas: 'graduation', mandarin: 'book', review: 'laptop', project: 'laptop',
 };
-const pickIco = (title: string, priority: number) => {
+const pickIco = (title: string, priority: number): keyof typeof Deco => {
   const t = title.toLowerCase();
   for (const k of Object.keys(ICO)) if (t.includes(k)) return ICO[k];
-  return priority === 3 ? '🎓' : priority === 2 ? '📖' : '📝';
+  return priority === 3 ? 'graduation' : priority === 2 ? 'book' : 'memo';
 };
 
 const toMin = (time: string) => {
@@ -94,7 +95,7 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
   const Row = ({ t, state }: { t: typeof agenda[0]; state: 'now' | 'next' | 'past' }) => (
     <div className={'agRow ' + state + (t.done ? ' ok' : '')} key={t.id}>
       <span className={'adot' + (state === 'now' ? ' live' : t.done ? ' ok' : '')} />
-      <span className="agIco">{pickIco(t.title, t.priority)}</span>
+      <span className="agIco">{(() => { const D = Deco[pickIco(t.title, t.priority)] as any; return <D width={19} />; })()}</span>
       <div className="agTxt">
         <b>{t.title}</b>
         <span>{t.time || 'Sepanjang hari'}</span>
@@ -108,21 +109,21 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
     <>
       <div className={'dashTop' + (night ? ' night' : '')}>
         <div className="dashGreet">
-          <div className="avatar">👦<span className="crown">👑</span></div>
+          <div className="avatar"><Deco.avatar width={30} /><span className="crown"><Deco.crown width={16} /></span></div>
           <div>
-            <b>{greet}, Bos! {emo}</b>
+            <b>{greet}, Bos! {night ? <Deco.moon width={16} style={{verticalAlign:'-2px'}} /> : <Deco.sun width={16} style={{verticalAlign:'-2px'}} />}</b>
             <div className="motto">{motto}</div>
           </div>
         </div>
         <div className="dashHero">
           <div className="clockBig">
             <b>{hhmm}</b>
-            <span className="dateChip">📅 {dstr}</span>
+            <span className="dateChip"><Ic.calendar size={11} style={{verticalAlign:'-1.5px', marginRight:3}} />{dstr}</span>
           </div>
           <div className="wcard">
-            <div className="wIcon">{night ? (cloudy ? '☁️' : '🌙') : (cloudy ? '🌤️' : '☀️')}</div>
+            <div className="wIcon">{night ? (cloudy ? <Deco.cloud width={30} /> : <Deco.moon width={30} />) : (cloudy ? <Deco.sunCloud width={30} /> : <Deco.sun width={30} />)}</div>
             <div className="wBody">
-              <b>{Math.round(sky.temp)}°C <span className="wCity">📍 {sky.city}</span></b>
+              <b>{Math.round(sky.temp)}°C <span className="wCity"><Deco.pin width={10} style={{verticalAlign:'-1px'}} /> {sky.city}</span></b>
               <div className="wCond">{rain ? 'Hujan' : 'Cerah berawan'}</div>
               <div className="wSub">{sky.forecast}</div>
             </div>
@@ -132,20 +133,20 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
 
       <div className="quickSum">
         <button className="qsItem" onClick={() => go && go('uang')} title="Catat pemasukan">
-          <span className="qsIco in">▼</span>
+          <span className="qsIco in"><Ic.down size={16} strokeWidth={2.6} /></span>
           <div className="qsTxt"><b className="pos">{idr(inc)}</b><span>Pemasukan</span></div>
         </button>
         <button className="qsItem" onClick={() => go && go('uang')} title="Catat pengeluaran">
-          <span className="qsIco out">▲</span>
+          <span className="qsIco out"><Ic.up size={16} strokeWidth={2.6} /></span>
           <div className="qsTxt"><b className="neg">{idr(out)}</b><span>Pengeluaran</span></div>
         </button>
-        <button className="qsNote" title="Notes (segera)" aria-label="Notes">✏️</button>
+        <button className="qsNote" title="Notes (segera)" aria-label="Notes"><Ic.pencil size={18} /></button>
       </div>
 
       {/* Agenda harian: geser kiri/kanan antar hari, scroll vertikal utk agenda lewat */}
       <section className="agendaCard" onClick={e => e.stopPropagation()}>
         <div className="dashHead">
-          <span className="starBadge blue">📅</span>
+          <span className="starBadge blue"><Ic.calendar size={16} /></span>
           <div className="agTitle">
             <b>Agenda {dayLabel}</b>
             <span className="agDate">{dateLabel}</span>
@@ -174,7 +175,7 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
       </section>
 
       <div className={'mottoBanner' + (night ? ' night' : '')}>
-        <span className="mIco">{banner[2]}</span>
+        <span className="mIco">{night ? <Deco.lotus width={22} /> : <Deco.compass width={22} />}</span>
         <div className="mTxt"><b>{banner[0]}</b><span>{banner[1]}</span></div>
         <span className="chev">›</span>
       </div>
