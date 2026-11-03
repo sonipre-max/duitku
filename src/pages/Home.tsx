@@ -4,6 +4,7 @@ import { Cell, Pie, PieChart } from 'recharts';
 import { db, getKv } from '../db';
 import { idr, today } from '../util';
 import { loadCfg } from '../ai';
+import { useTheme } from '../theme';
 
 const QUICK = [
   { go: 'uang', icon: '💸', label: 'Catat Keuangan', short: 'Keuangan', c: '#3b82f6' },
@@ -31,7 +32,7 @@ export default function Home({ go }: { go: (t: string) => void }) {
   const trades = useLiveQuery(() => db.trades.toArray(), []) || [];
   const cfg = loadCfg();
   const name = cfg.name || 'Soni';
-  const theme = (document.documentElement.getAttribute('data-theme') || 'light') as 'light' | 'darkpro' | 'gold' | 'cyber';
+  const theme = useTheme();
 
   const [mkt, setMkt] = useState<{ sym: string; price: number; chg: number }[]>([]);
   const [m30, setM30] = useState<number[]>([]);
