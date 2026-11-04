@@ -53,8 +53,9 @@ export default function Finance() {
     setF({ ...f, amount: '', note: '' });
     setSheet('');
   };
+  const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""').replace(/[\r\n]+/g, ' ')}"`;
   const csv = () => saveFile('transaksi.csv', 'tanggal,jenis,jumlah,kategori,akun,catatan\n' +
-    txs.map(t => [t.date, t.type, t.amount, t.category, accounts.find(a => a.id === t.accountId)?.name, `"${t.note.replace(/"/g, '""')}"`].join(',')).join('\n'));
+    txs.map(t => [esc(t.date), esc(t.type), esc(t.amount), esc(t.category), esc(accounts.find(a => a.id === t.accountId)?.name), esc(t.note)].join(',')).join('\n'));
 
   // kelompokkan riwayat per tanggal
   const byDay: Record<string, typeof txs> = {};

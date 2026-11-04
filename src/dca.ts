@@ -38,7 +38,8 @@ export async function runPlan(plan: DcaPlan): Promise<number> {
 
   await db.transaction('rw', db.trades, db.plans, async () => {
     await db.trades.bulkAdd(clean);
-    await db.plans.update(plan.id!, { lastRun: t });
+    // lastRun = tanggal terakhir yang benar-benar kebeli; hari tanpa harga (libur) dicoba lagi nanti
+    await db.plans.update(plan.id!, { lastRun: clean.reduce((m, r) => r.date > m ? r.date : m, plan.lastRun || plan.startDate) });
   });
   return clean.length;
 }

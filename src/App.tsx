@@ -21,16 +21,24 @@ const sha = async (s: string) => {
 
 function Lock({ onOk }: { onOk: () => void }) {
   const [pin, setPin] = useState(''); const [err, setErr] = useState('');
+  const [wait, setWait] = useState(0);
   const go = async () => {
-    if ((await sha(pin)) === localStorage.getItem('pin')) onOk();
-    else { setErr('PIN salah. Coba lagi.'); setPin(''); }
+    if (wait > 0) return;
+    if ((await sha(pin)) === localStorage.getItem('pin')) { localStorage.removeItem('pinfails'); onOk(); return; }
+    const fails = (+localStorage.getItem('pinfails') || 0) + 1;
+    localStorage.setItem('pinfails', String(fails));
+    // jeda progresif: 3x salah → 10d, 5x → 30d, 8x → 2m, 12x → 5 menit
+    const w = fails >= 12 ? 300 : fails >= 8 ? 120 : fails >= 5 ? 30 : fails >= 3 ? 10 : 0;
+    if (w) { setWait(w); const iv = setInterval(() => setWait(x => { if (x <= 1) { clearInterval(iv); return 0; } return x - 1; }), 1000); }
+    setErr(w ? `PIN salah. Tunggu ${w} detik.` : 'PIN salah. Coba lagi.');
+    setPin('');
   };
   return (
     <div className="lock">
       <h1>DuitKu</h1>
       <input type="password" inputMode="numeric" value={pin} placeholder="Masukkan PIN" onChange={e => setPin(e.target.value)} />
       <div className="neg">{err}</div>
-      <button className="btn" onClick={go}>Buka</button>
+      <button className="btn" onClick={go} disabled={wait > 0}>{wait > 0 ? `Terkunci ${wait}s` : 'Buka'}</button>
     </div>
   );
 }
@@ -48,10 +56,10 @@ export default function App() {
     (async () => {
       if ((await db.accounts.count()) === 0) await db.accounts.add({ name: 'Tunai', balance0: 0 });
       try { const r = await runAll(); if (r && r !== 'Sudah terbaru.') console.log('[DCA]', r); } catch (e) { console.warn('[DCA] auto-run gagal:', e); }
-      // jalankan ulang tiap 6 jam selama app terbuka
-      const iv = setInterval(async () => { try { await runAll(); } catch { /* offline */ } }, 6 * 60 * 60 * 1000);
-      return () => clearInterval(iv);
     })();
+    // jalankan ulang tiap 6 jam selama app terbuka — cleanup benar dikembalikan ke React
+    const iv = setInterval(async () => { try { await runAll(); } catch { /* offline */ } }, 6 * 60 * 60 * 1000);
+    return () => clearInterval(iv);
   }, []);
 
   if (locked) return <Lock onOk={() => setLocked(false)} />;

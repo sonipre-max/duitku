@@ -69,9 +69,17 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
   // agenda utk tanggal yang dilihat (termasuk repeat), urut jam
   const d = parse(viewDate);
   const dateLabel = d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  // konsisten dgn Todo.tsx: hormati tanggal mulai + monthly 29-31 fallback hari terakhir bulan
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
   const agenda = allTasks
-    .filter(t => t.repeat === 'none' ? t.date === viewDate
-      : t.repeat === 'daily' || (t.repeat === 'weekly' && parse(t.date).getDay() === d.getDay()) || (t.repeat === 'monthly' && parse(t.date).getDate() === d.getDate()))
+    .filter(t => {
+      if (viewDate < t.date) return false; // belum mulai
+      if (t.repeat === 'none') return t.date === viewDate;
+      if (t.repeat === 'daily') return true;
+      if (t.repeat === 'weekly') return parse(t.date).getDay() === d.getDay();
+      const st = parse(t.date).getDate();
+      return st === d.getDate() || (st >= 29 && d.getDate() === lastDay && st > d.getDate());
+    })
     .sort((a, b) => toMin(a.time) - toMin(b.time));
   const isToday = dayOff === 0;
   const dayLabel = dayOff === 0 ? 'Hari Ini' : dayOff === -1 ? 'Kemarin' : dayOff === 1 ? 'Besok' : d.toLocaleDateString('id-ID', { weekday: 'long' });

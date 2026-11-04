@@ -9,11 +9,17 @@ import { Ic, Deco } from '../icons';
 // Dua tab terpisah: Catatan Umum & Notes To Do (per tugas/jadwal).
 
 // ── Enkripsi secret notes: AES-GCM, key device-bound (dari pinsalt) ──
+// Key vault: PBKDF2 dari PIN user (kalau PIN diset) + salt acak.
+// Tanpa PIN → device-key saja (penyamaran). Dengan PIN → benar-benar terikat rahasia user.
 const getKey = async () => {
   let salt = localStorage.getItem('pinsalt');
   if (!salt) { const x = crypto.getRandomValues(new Uint8Array(16)); salt = [...x].map(b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('pinsalt', salt); }
-  const raw = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('duitku-notes:' + salt));
-  return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
+  const pin = localStorage.getItem('pin') ? localStorage.getItem('duitku-pin-plain-cache') : null; // cache PIN session (jika fitur unlock aktif)
+  const base = pin || ('duitku-device:' + salt);
+  const iter = pin ? 150000 : 10000;
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(base), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: new TextEncoder().encode('duitku-notes:' + salt), iterations: iter, hash: 'SHA-256' }, km,
+    { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
 };
 const encBody = async (plain: string) => {
   const k = await getKey(); const iv = crypto.getRandomValues(new Uint8Array(12));

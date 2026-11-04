@@ -4,8 +4,13 @@ import { loadCfg } from './ai';
 
 export type Sky = { period: 'pagi' | 'siang' | 'sore' | 'malam'; weather: 'cerah' | 'berawan' | 'hujan' | 'malam-cerah' | 'malam-berawan'; temp: number; wmo: number; forecast: string; city: string; tzOffset: number };
 
-const WMO = (code: number): 'cerah' | 'berawan' | 'hujan' =>
-  code === 0 || code === 1 ? 'cerah' : code >= 51 ? 'hujan' : 'berawan';
+const WMO = (code: number): 'cerah' | 'berawan' | 'hujan' => {
+  if (code === 0 || code === 1) return 'cerah';
+  if (code >= 51 && code <= 67) return 'hujan';   // gerimis & hujan
+  if (code >= 71 && code <= 86) return 'berawan'; // salju/bersalju — bukan hujan
+  if (code >= 95) return 'hujan';                 // badai petir
+  return 'berawan';
+};
 
 export function greeting(period: Sky['period']) {
   switch (period) {
@@ -55,6 +60,7 @@ export function useSky(): Sky | null {
         weather: period === 'malam' ? 'malam-cerah' : 'cerah',
         temp: NaN, wmo: -1, forecast: '', city, tzOffset: tzOff ?? 0,
       };
+      let dayCode = -1;
       try {
         const u = new URL('https://api.open-meteo.com/v1/forecast');
         u.searchParams.set('latitude', String(lat));
@@ -63,10 +69,11 @@ export function useSky(): Sky | null {
         u.searchParams.set('daily', 'weather_code');
         u.searchParams.set('forecast_days', '1');
         u.searchParams.set('timezone', 'auto');
-        const r = await fetch(u.toString());
+        const r = await fetch(u.toString()); // satu request: current + daily sekaligus
         if (r.ok) {
           const j = await r.json();
           const code = j.current?.weather_code ?? 0;
+          dayCode = j.daily?.weather_code?.[0] ?? code;
           const base = WMO(code);
           skyNow = {
             period,
@@ -74,23 +81,11 @@ export function useSky(): Sky | null {
               : base,
             temp: j.current?.temperature_2m ?? NaN,
             wmo: code,
-            city, tzOffset: 0,
+            city, tzOffset: tzOff ?? 0,
             forecast: '',
           };
         }
       } catch { /* offline: pakai default cerah */ }
-      // ramalan hari ini (dari kode cuaca harian)
-      let dayCode = skyNow.wmo;
-      try {
-        const u = new URL('https://api.open-meteo.com/v1/forecast');
-        u.searchParams.set('latitude', String(lat));
-        u.searchParams.set('longitude', String(lon));
-        u.searchParams.set('daily', 'weather_code');
-        u.searchParams.set('forecast_days', '1');
-        u.searchParams.set('timezone', 'auto');
-        const r = await fetch(u.toString());
-        if (r.ok) dayCode = (await r.json()).daily?.weather_code?.[0] ?? dayCode;
-      } catch { /* offline */ }
       skyNow.forecast = forecastText(dayCode >= 0 ? WMO(dayCode) : 'cerah', period);
       if (alive) setSky(skyNow);
     };

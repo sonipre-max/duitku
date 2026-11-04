@@ -44,9 +44,10 @@ export default function Invest() {
   const invAll = trades.reduce((s, t) => s + t.amount, 0);
   const qtyAll: Record<string, number> = {};
   trades.forEach(t => (qtyAll[t.symbol] = (qtyAll[t.symbol] || 0) + t.qty));
+  const pxReady = syms.every(k => px[k] > 0); // harga semua aset sudah termuat
   const valAll = Object.entries(qtyAll).reduce((s, [k, q]) => s + q * (px[k] || 0), 0);
-  const plAll = valAll - invAll;
-  const plPct = invAll ? (plAll / invAll) * 100 : 0;
+  const plAll = pxReady ? valAll - invAll : 0;
+  const plPct = pxReady && invAll ? (plAll / invAll) * 100 : 0;
   // sparkline akumulasi modal (cost basis) — BUKAN performance; nilai kini ada di hero
   // sparkline: nilai portofolio historis — unit kumulatif per tanggal x harga beli transaksi tsb
   // (harga beli nyata per transaksi, bukan sekadar tumpukan modal)
@@ -69,7 +70,7 @@ export default function Invest() {
   return (
     <>
       <section className="heroCard">
-        <div className="ivLabel">Total Nilai Portofolio</div>
+        <div className="ivLabel">{pxReady || !invAll ? 'Total Nilai Portofolio' : 'Memuat harga…'}</div>
         <div className="ivTotal">{idr(valAll)}</div>
         <div className={'big ' + (plAll >= 0 ? 'pos' : 'neg')} style={{ fontSize: 15 }}>
           {plAll >= 0 ? <Ic.up size={14} style={{ verticalAlign: '-2px' }} /> : <Ic.down size={14} style={{ verticalAlign: '-2px' }} />} {plAll >= 0 ? '+' : ''}{idr(plAll)} ({plPct.toFixed(2)}%)

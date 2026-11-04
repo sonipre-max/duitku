@@ -83,7 +83,7 @@ export const TOOL_FNS: Record<string, Fn> = {
     const t = a.id ? list.find((x: any) => x.id === a.id) : list.find((x: any) => x.title.toLowerCase().includes(String(a.title || '').toLowerCase()));
     if (!t) return 'Error: tugas tidak ditemukan';
     if (t.repeat === 'none') await db.tasks.update(t.id!, { done: true });
-    else await db.tasks.update(t.id!, { doneOn: [...(t.doneOn || []), ctx.today] });
+    else await db.tasks.update(t.id!, { doneOn: (t.doneOn || []).includes(ctx.today) ? t.doneOn : [...(t.doneOn || []), ctx.today] });
     return `OK: tugas "${t.title}" ditandai selesai.`;
   },
   delete_task: async (a) => {
@@ -120,6 +120,19 @@ export const TOOL_FNS: Record<string, Fn> = {
   },
 };
 
+// Izin akses: tanpa withData, AI hanya dapat tools jawab umum (tanpa baca/tulis data).
+const READ_TOOLS = ['get_summary','get_transactions','get_tasks','get_accounts','get_budgets','get_portfolio','list_tools'];
+export function allowedTools(cfg: Cfg) {
+  if (!cfg.withData) {
+    return AGENT_TOOLS.filter((t: any) => !READ_TOOLS.includes(t.function.name));
+  }
+  return AGENT_TOOLS;
+}
+// Guard eksekusi: tool data diblokir jika tidak diizinkan cfg
+function toolAllowed(name: string, cfg: Cfg) {
+  return cfg.withData || !READ_TOOLS.includes(name);
+}
+
 // Satu putaran agent: kirim percakapan + tools; kalau model minta tool call, eksekusi & ulangi (maks 6 putaran).
 export async function agentTurn(history: Msg[], cfg: Cfg, push: (m: Msg) => void): Promise<void> {
   if (!cfg.key) throw new Error('Isi API key di Setelan dulu.');
@@ -143,7 +156,7 @@ export async function agentTurn(history: Msg[], cfg: Cfg, push: (m: Msg) => void
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: sys }] },
           contents: convo.filter(m => m.role !== 'system').map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-          tools: AGENT_TOOLS.map(t => ({ functionDeclarations: [t.function] })),
+          tools: allowedTools(cfg).map(t => ({ functionDeclarations: [t.function] })),
         })
       });
       const j = await r.json();
@@ -165,7 +178,7 @@ export async function agentTurn(history: Msg[], cfg: Cfg, push: (m: Msg) => void
     const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.key}` },
-      body: JSON.stringify({ model: cfg.model, messages: convo, tools: AGENT_TOOLS })
+      body: JSON.stringify({ model: cfg.model, messages: convo, tools: allowedTools(cfg) })
     });
     const j = await r.json();
     if (!r.ok) throw new Error(j.error?.message || 'Permintaan gagal');
