@@ -24,7 +24,8 @@ export default function Invest() {
   const [custom, setCustom] = useState('');
 
   const syms = [...new Set(trades.map(t => t.symbol))];
-  useEffect(() => { (async () => { const o: Record<string, number> = {}; for (const s of syms) o[s] = await latest(s); setPx(o); })(); }, [syms.join(',')]);
+  const [syncedAt, setSyncedAt] = useState('');
+  useEffect(() => { (async () => { const o: Record<string, number> = {}; for (const s of syms) o[s] = await latest(s); setPx(o); setSyncedAt(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })); })(); }, [syms.join(',')]);
 
   const total = Object.values(pct).reduce((s, v) => s + num(v), 0);
   const d = Math.min(1e9, Math.max(1000, num(daily)));
@@ -89,11 +90,11 @@ export default function Invest() {
             <div className="tag" style={{ textAlign: 'center' }}>Modal terpakai → titik terakhir: nilai kini</div>
           </div>
         )}
-        <div className="tag" style={{ textAlign: 'center' }}>Simulasi harga pasar sungguhan — tanpa uang asli.</div>
+        <div className="tag" style={{ textAlign: 'center' }}>Simulasi harga pasar sungguhan — tanpa uang asli.{syncedAt && <> Harga terakhir disinkron {syncedAt}.</>}</div>
       </section>
 
       <div className="qaGrid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-        <button className="qaBtn" onClick={async () => { setMsg('Menyinkronkan…'); setMsg(await runAll()); }}>
+        <button className="qaBtn" onClick={async () => { setMsg('Menyinkronkan…'); setMsg(await runAll()); setSyncedAt(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })); }}>
           <span className="qaIco" style={{ background: 'rgba(34,197,94,.15)', color: '#22c55e' }}><Ic.up size={20} strokeWidth={2.2} /></span><span>Sinkron harga</span>
         </button>
         <button className="qaBtn" onClick={() => setSheet(true)}>

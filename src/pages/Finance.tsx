@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Cell, Pie, PieChart, Tooltip } from 'recharts';
 import { db, getKv } from '../db';
@@ -72,9 +72,18 @@ export default function Finance() {
   const csv = () => saveFile('transaksi.csv', 'tanggal,jenis,jumlah,kategori,akun,catatan\n' +
     txs.map(t => [esc(t.date), esc(t.type), esc(t.amount), esc(t.category), esc(accounts.find(a => a.id === t.accountId)?.name), esc(t.note)].join(',')).join('\n'));
 
-  // kelompokkan riwayat per tanggal
+  // ── filter & pencarian riwayat ──
+  const [fq, setFq] = useState('');
+  const [fCat, setFCat] = useState('');
+  const [fMonth, setFMonth] = useState('');
+  const filtered = useMemo(() => txs
+    .filter(t => !fMonth || t.date.startsWith(fMonth))
+    .filter(t => !fCat || t.category === fCat)
+    .filter(t => !fq || (t.category + ' ' + (t.note || '') + ' ' + t.amount).toLowerCase().includes(fq.toLowerCase())), [txs, fq, fCat, fMonth]);
+  // kelompokkan riwayat per tanggal (sudah terfilter)
   const byDay: Record<string, typeof txs> = {};
-  txs.slice(0, 60).forEach(t => ((byDay[t.date] = byDay[t.date] || []).push(t)));
+  filtered.slice(0, 60).forEach(t => ((byDay[t.date] = byDay[t.date] || []).push(t)));
+  const monthsAvail = [...new Set(txs.map(t => t.date.slice(0, 7)))].sort().reverse();
 
   const Sheet = () => !sheet ? null : (
     <>
@@ -208,11 +217,28 @@ export default function Finance() {
 
       <section>
         <h2>Riwayat transaksi</h2>
+        {(txs.length > 0) && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+            <input placeholder="Cari (kategori, catatan, nominal…)" value={fq} onChange={e => setFq(e.target.value)} />
+            <div className="g2">
+              <select value={fCat} onChange={e => setFCat(e.target.value)}>
+                <option value="">Semua kategori</option>
+                {[...IN, ...OUT].map(c => <option key={c}>{c}</option>)}
+              </select>
+              <select value={fMonth} onChange={e => setFMonth(e.target.value)}>
+                <option value="">Semua bulan</option>
+                {monthsAvail.map(mm => <option key={mm}>{mm}</option>)}
+              </select>
+            </div>
+            {(fq || fCat || fMonth) && <button className="link" onClick={() => { setFq(''); setFCat(''); setFMonth(''); }}>✕ Bersihkan filter</button>}
+          </div>
+        )}
         {txs.length === 0 && <div className="mute">Belum ada transaksi.</div>}
         {Object.entries(byDay).map(([date, list]) => (
           <div key={date} className="dayGroup">
             <div className="dayHead"><span>{date === today() ? 'Hari ini' : date}</span><span className="mute">
               {idr(list.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0) - list.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0))}</span></div>
+            {list.length === 0 && <div className="mute" style={{ padding: '8px 0' }}>Gak ada yang cocok dengan filter.</div>}
             {list.map(t => (
               <div className="row" key={t.id}>
                 <span className="qaIco" style={{ background: t.type === 'in' ? 'rgba(34,197,94,.15)' : 'rgba(244,63,94,.12)', color: t.type === 'in' ? '#22c55e' : '#f43f5e' }}>

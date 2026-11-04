@@ -149,7 +149,7 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
           <span className="qsIco out"><Ic.up size={16} strokeWidth={2.6} /></span>
           <div className="qsTxt"><b className="neg">{idr(out)}</b><span>Pengeluaran</span></div>
         </button>
-        <button className="qsNote" title="Notes (segera)" aria-label="Notes"><Ic.pencil size={18} /></button>
+        <button className="qsNote" title="Catatan" aria-label="Notes" onClick={() => go && go('notes')}><Ic.pencil size={18} /></button>
       </div>
 
       {/* Agenda harian: geser kiri/kanan antar hari, scroll vertikal utk agenda lewat */}
