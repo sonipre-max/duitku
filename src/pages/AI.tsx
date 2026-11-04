@@ -5,8 +5,6 @@ import { Ic, Deco } from '../icons';
 
 // Terinspirasi Lobe Chat: bubble chat, quick prompts, indikator mengetik
 export default function AI() {
-  // konfirmasi native sebelum AI menghapus data
-  (globalThis as any).__duitkuConfirm = (q: string) => window.confirm(q);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState('');
   const [mode, setMode] = useState<'chat' | 'task'>('chat');

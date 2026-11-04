@@ -54,10 +54,21 @@ export default function Notes() {
     return () => window.removeEventListener('notefor', h);
   }, []);
 
+  // teks yang bisa dicari: title + body (secret didekripsi dulu via plainMap)
+  const [plainMap, setPlainMap] = useState<Record<number, string>>({});
+  useEffect(() => {
+    let on = true;
+    (async () => {
+      const o: Record<number, string> = {};
+      for (const n of notes) if (n.secret) o[n.id!] = await decBody(n.body);
+      if (on) setPlainMap(o);
+    })();
+    return () => { on = false; };
+  }, [notes]);
   const list = useMemo(() => notes
     .filter(n => n.kind === tab)
-    .filter(n => !q || (n.title + ' ' + n.body).toLowerCase().includes(q.toLowerCase()))
-    .sort((a, b) => +b.pinned - +a.pinned || b.updatedAt.localeCompare(a.updatedAt)), [notes, tab, q]);
+    .filter(n => { if (!q) return true; const hay = (n.title + ' ' + (n.secret ? (plainMap[n.id!] || '') : n.body)).toLowerCase(); return hay.includes(q.toLowerCase()); })
+    .sort((a, b) => +b.pinned - +a.pinned || b.updatedAt.localeCompare(a.updatedAt)), [notes, tab, q, plainMap]);
 
   const save = async () => {
     if (!f.title.trim() && !f.body.trim()) return;

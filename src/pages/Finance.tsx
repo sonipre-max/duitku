@@ -34,10 +34,10 @@ export default function Finance() {
     .forEach(t => (spent[t.category] = (spent[t.category] || 0) + t.amount));
   const pie = Object.entries(spent).map(([name, value]) => ({ name, value }));
   const total = accounts.reduce((s, a) => s + bal(a.id!), 0);
-  const outToday = txs.filter(t => t.date === today() && t.type === 'out').reduce((s, t) => s + t.amount, 0);
-  const inToday = txs.filter(t => t.date === today() && t.type === 'in').reduce((s, t) => s + t.amount, 0);
-  const mOut = txs.filter(t => t.date.startsWith(m) && t.type === 'out').reduce((s, t) => s + t.amount, 0);
-  const mIn = txs.filter(t => t.date.startsWith(m) && t.type === 'in').reduce((s, t) => s + t.amount, 0);
+  const outToday = txs.filter(t => t.date === today() && t.type === 'out' && t.category !== 'Transfer').reduce((s, t) => s + t.amount, 0);
+  const inToday = txs.filter(t => t.date === today() && t.type === 'in' && t.category !== 'Transfer').reduce((s, t) => s + t.amount, 0);
+  const mOut = txs.filter(t => t.date.startsWith(m) && t.type === 'out' && t.category !== 'Transfer').reduce((s, t) => s + t.amount, 0);
+  const mIn = txs.filter(t => t.date.startsWith(m) && t.type === 'in' && t.category !== 'Transfer').reduce((s, t) => s + t.amount, 0);
   const overBudget = budgets.filter(b => (spent[b.category] || 0) > b.limit).length;
 
   const add = async (type: string) => {

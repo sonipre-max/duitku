@@ -41,6 +41,6 @@ class DB extends Dexie {
   }
 }
 export const db = new DB();
-export const TABLES = ['accounts', 'txs', 'budgets', 'tasks', 'plans', 'trades'] as const;
+export const TABLES = ['accounts', 'txs', 'budgets', 'tasks', 'plans', 'trades', 'notes'] as const;
 export const getKv = async (key: string, def: any) => (await db.kv.get(key))?.value ?? def;
 export const setKv = (key: string, value: any) => db.kv.put({ key, value });

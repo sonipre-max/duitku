@@ -48,12 +48,22 @@ export default function Invest() {
   const plAll = valAll - invAll;
   const plPct = invAll ? (plAll / invAll) * 100 : 0;
   // sparkline akumulasi modal (cost basis) — BUKAN performance; nilai kini ada di hero
+  // sparkline: nilai portofolio historis — unit kumulatif per tanggal x harga beli transaksi tsb
+  // (harga beli nyata per transaksi, bukan sekadar tumpukan modal)
   const spark = (() => {
+    const sorted = [...trades].sort((a, b) => a.date.localeCompare(b.date));
+    const qty: Record<string, number> = {}; let c = 0;
     const byDate: Record<string, number> = {};
-    trades.forEach(t => (byDate[t.date] = (byDate[t.date] || 0) + t.amount));
+    sorted.forEach(t => {
+      qty[t.symbol] = (qty[t.symbol] || 0) + t.qty;
+      c += t.amount;
+      byDate[t.date] = c; // cost basis kumulatif
+    });
+    // tambahkan titik terakhir = nilai kini (harga terkini)
     const dates = Object.keys(byDate).sort();
-    let c = 0;
-    return dates.map(dd => ({ d: dd, v: (c += byDate[dd]) }));
+    const pts = dates.map(dd => ({ d: dd, v: byDate[dd] }));
+    if (dates.length) pts.push({ d: 'kini', v: valAll });
+    return pts;
   })();
 
   return (
@@ -75,7 +85,7 @@ export default function Invest() {
                 <Area type="monotone" dataKey="v" stroke="var(--ac)" strokeWidth={2} fill="url(#sg)" />
               </AreaChart>
             </ResponsiveContainer>
-            <div className="tag" style={{ textAlign: 'center' }}>Akumulasi modal (bukan grafik performance)</div>
+            <div className="tag" style={{ textAlign: 'center' }}>Modal terpakai → titik terakhir: nilai kini</div>
           </div>
         )}
         <div className="tag" style={{ textAlign: 'center' }}>Simulasi harga pasar sungguhan — tanpa uang asli.</div>

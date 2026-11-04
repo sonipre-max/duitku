@@ -43,6 +43,8 @@ export default function App() {
   const [cfg, setCfg] = useState(false);
 
   useEffect(() => {
+    // konfirmasi delete AI: selalu tersedia selama app hidup
+    (globalThis as any).__duitkuConfirm = (q: string) => window.confirm(q);
     (async () => {
       if ((await db.accounts.count()) === 0) await db.accounts.add({ name: 'Tunai', balance0: 0 });
       try { const r = await runAll(); if (r && r !== 'Sudah terbaru.') console.log('[DCA]', r); } catch (e) { console.warn('[DCA] auto-run gagal:', e); }

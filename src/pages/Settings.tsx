@@ -25,14 +25,14 @@ export default function Settings() {
 
   const backup = async () => {
     const o: any = {};
-    for (const t of [...TABLES, 'notes', 'kv'] as any[]) o[t] = await (db as any)[t].toArray();
+    for (const t of [...TABLES, 'kv'] as any[]) o[t] = await (db as any)[t].toArray();
     await saveFile(`duitku-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(o));
   };
   const restore = async (f?: File) => {
     if (!f) return;
     try {
       const o = JSON.parse(await f.text());
-      const all = [...TABLES, 'notes', 'kv'] as any[];
+      const all = [...TABLES, 'kv'] as any[];
       await db.transaction('rw', all.map(t => (db as any)[t]), async () => {
         for (const t of all) { await (db as any)[t].clear(); if (o[t]?.length) await (db as any)[t].bulkAdd(o[t]); }
       });
