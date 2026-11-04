@@ -5,6 +5,7 @@ const Todo = lazy(() => import('./pages/Todo'));
 const Invest = lazy(() => import('./pages/Invest'));
 const AI = lazy(() => import('./pages/AI'));
 const Settings = lazy(() => import('./pages/Settings'));
+const Notes = lazy(() => import('./pages/Notes'));
 import { db } from './db';
 import { runAll } from './dca';
 import { Ic } from './icons';
@@ -29,7 +30,7 @@ function Lock({ onOk }: { onOk: () => void }) {
   );
 }
 
-const TABS = [['home', 'Beranda', 'home'], ['uang', 'Keuangan', 'wallet'], ['tugas', 'To Do', 'todo'], ['dca', 'Investasi', 'invest'], ['ai', 'Lainnya', 'ai']] as const;
+const TABS = [['home', 'Beranda', 'home'], ['uang', 'Keuangan', 'wallet'], ['tugas', 'To Do', 'todo'], ['dca', 'Investasi', 'invest'], ['ai', 'Lainnya', 'ai'], ['notes', 'Catatan', 'note']] as const;
 
 export default function App() {
   const [locked, setLocked] = useState(!!localStorage.getItem('pin'));
@@ -59,7 +60,7 @@ export default function App() {
       <main>
         <Suspense fallback={<div className="loading">…</div>}>
           {cfg ? <Settings /> : tab === 'home' ? <Home go={setTab} /> : tab === 'uang' ? <Finance />
-            : tab === 'tugas' ? <Todo /> : tab === 'dca' ? <Invest /> : <AI />}
+            : tab === 'tugas' ? <Todo /> : tab === 'dca' ? <Invest /> : tab === 'notes' ? <Notes /> : <AI />}
         </Suspense>
       </main>
       <nav className="floatnav">{TABS.map(([k, l, ico]) => { const NI = (Ic as any)[ico]; return (

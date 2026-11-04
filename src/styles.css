@@ -733,3 +733,20 @@ html[data-theme='cyber'] .motto{background:linear-gradient(160deg,rgba(76,29,149
 .ivEmptyIco{font-size:38px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.25))}
 .ivEmpty b{font-size:15px}
 .ivEmpty span{font-size:12.5px;opacity:.85;line-height:1.6;max-width:300px}
+
+
+/* ── Notes (Joplin/Standard Notes inspired) ── */
+.ntCard{border-radius:16px;padding:12px 14px;margin-bottom:10px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(10px)}
+html[data-time='night'] .ntCard{background:linear-gradient(160deg,rgba(30,27,75,.55),rgba(30,27,75,.38));border-color:rgba(148,163,184,.3)}
+html[data-theme='gold'] .ntCard{background:linear-gradient(160deg,rgba(255,238,190,.6),rgba(255,209,120,.4)) !important;border-color:rgba(190,150,40,.6) !important}
+html[data-theme='cyber'] .ntCard{background:linear-gradient(160deg,rgba(76,29,149,.6),rgba(30,20,60,.45)) !important;border-color:rgba(168,85,247,.55) !important}
+.ntTitle{font-size:14.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ntActs{display:flex;gap:6px}
+.ntActs button{background:none;border:0;cursor:pointer;opacity:.65;padding:2px}
+.ntActs button:active{transform:scale(.9)}
+.ntRef{font-size:11.5px;color:var(--ac);margin:4px 0 2px;font-weight:600}
+.ntBody{font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word;margin-top:6px}
+.ntBody.secret{letter-spacing:3px;filter:blur(0)}
+.ntFoot{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.ntSecretRow{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.ntSecretRow input{width:auto}

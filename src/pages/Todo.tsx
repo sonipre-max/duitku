@@ -97,6 +97,9 @@ export default function Todo() {
                 {t.repeat !== 'none' && ` · ${({ daily: 'tiap hari', weekly: 'tiap minggu', monthly: 'tiap bulan' } as any)[t.repeat]}`}
               </div>
             </span>
+            <button className="link" title="Catatan tugas" onClick={() => {
+              window.dispatchEvent(new CustomEvent('notefor', { detail: { taskId: t.id, date: sel, title: t.title } }));
+            }}><Ic.pencil size={13} /></button>
             <button className="link" onClick={() => { cancel(t.id!); db.tasks.delete(t.id!); }}>Hapus</button>
           </div>
         ))}

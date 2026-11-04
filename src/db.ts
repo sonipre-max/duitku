@@ -12,6 +12,15 @@ export interface DcaPlan {
   alloc: Record<string, number>; active: boolean;
 }
 export interface Trade { id?: number; planId: number; date: string; symbol: string; price: number; amount: number; qty: number }
+export interface Note {
+  id?: number; title: string; body: string;
+  kind: 'umum' | 'tugas';            // dipisah: umum & notes dari to-do list
+  secret: boolean;                   // sandi / wallet key / API key
+  date: string;                      // tanggal terkait (dipakai notes jadwal & tugas)
+  taskId?: number;                   // relasi ke tugas (notes dari to-do list)
+  pinned: boolean;
+  createdAt: string; updatedAt: string;
+}
 export interface Kv { key: string; value: any }
 
 class DB extends Dexie {
@@ -22,11 +31,12 @@ class DB extends Dexie {
   plans!: Table<DcaPlan, number>;
   trades!: Table<Trade, number>;
   kv!: Table<Kv, string>;
+  notes!: Table<Note, number>;
   constructor() {
     super('duitku');
-    this.version(1).stores({
+    this.version(2).stores({
       accounts: '++id', txs: '++id,date,accountId', budgets: '++id', tasks: '++id,date',
-      plans: '++id', trades: '++id,planId,symbol,date', kv: 'key'
+      plans: '++id', trades: '++id,planId,symbol,date', kv: 'key', notes: '++id,kind,date,taskId'
     });
   }
 }

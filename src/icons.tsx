@@ -2,7 +2,7 @@
 // - Ikon fungsional/navigasi: Lucide (konsisten stroke, modern).
 // - Ikon dekoratif/ilustratif: Iconify (emoji/koleksi kaya, karakter).
 import {
-  Home, Wallet, ListTodo, LineChart, Sparkles, Settings,
+  Home, Wallet, ListTodo, LineChart, Sparkles, Settings, NotebookPen, X,
   Plus, Minus, Pencil, CalendarDays, ChevronLeft, ChevronRight,
   TrendingUp, TrendingDown, Star, Eye, EyeOff, ArrowRight,
 } from 'lucide-react';
@@ -16,6 +16,8 @@ export const Ic = {
   invest: LineChart,
   ai: Sparkles,
   settings: Settings,
+  note: NotebookPen,
+  x: X,
   plus: Plus,
   minus: Minus,
   pencil: Pencil,
