@@ -9,7 +9,7 @@ export const AGENT_TOOLS = [
   { type: 'function', function: { name: 'delete_transaction', description: 'Hapus transaksi by id.', parameters: { type: 'object', properties: { id: { type: 'number' } }, required: ['id'] } } },
   { type: 'function', function: { name: 'list_tasks', description: 'Daftar tugas. Opsional: date (YYYY-MM-DD, default hari ini), all (true = semua).', parameters: { type: 'object', properties: { date: { type: 'string' }, all: { type: 'boolean' } }, required: [] } } },
   { type: 'function', function: { name: 'add_task', description: 'Buat tugas/jadwal. title wajib; date YYYY-MM-DD, time HH:MM, priority 1 tinggi/2 sedang/3 rendah, repeat none/daily/weekly/monthly.', parameters: { type: 'object', properties: { title: { type: 'string' }, date: { type: 'string' }, time: { type: 'string' }, priority: { type: 'number', enum: [1, 2, 3] }, repeat: { type: 'string', enum: ['none', 'daily', 'weekly', 'monthly'] } }, required: ['title'] } } },
-  { type: 'function', function: { name: 'complete_task', description: 'Tandai tugas selesai by id atau by title (mengandung kata).', parameters: { type: 'object', properties: { id: { type: 'number' }, title: { type: 'string' } }, required: [] } } },
+  { type: 'function', function: { name: 'complete_task', description: 'Tandai tugas selesai by id atau by title (mengandung kata).', parameters: { type: 'object', properties: { id: { type: 'number' } }, title: { type: 'string' } }, required: [] } } },
   { type: 'function', function: { name: 'delete_task', description: 'Hapus tugas by id.', parameters: { type: 'object', properties: { id: { type: 'number' } }, required: ['id'] } } },
   { type: 'function', function: { name: 'list_accounts', description: 'Daftar rekening + saldo saat ini.', parameters: { type: 'object', properties: {}, required: [] } } },
   { type: 'function', function: { name: 'list_budgets', description: 'Daftar anggaran bulanan + pemakaian bulan ini.', parameters: { type: 'object', properties: {}, required: [] } } },
@@ -120,18 +120,27 @@ export const TOOL_FNS: Record<string, Fn> = {
   },
 };
 
-// Izin akses: tanpa withData, AI hanya dapat tools jawab umum (tanpa baca/tulis data).
-const READ_TOOLS = ['get_summary','get_transactions','get_tasks','get_accounts','get_budgets','get_portfolio','list_tools'];
+// Tools yang baca/tulis data user — hanya tersedia jika cfg.withData = true.
+// Nama harus cocok persis dengan AGENT_TOOLS di atas.
+const DATA_TOOLS = [
+  'get_summary', 'list_transactions', 'add_transaction', 'delete_transaction',
+  'list_tasks', 'add_task', 'complete_task', 'delete_task',
+  'list_accounts', 'list_budgets', 'set_budget', 'list_portfolio',
+];
+
 export function allowedTools(cfg: Cfg) {
   if (!cfg.withData) {
-    return AGENT_TOOLS.filter((t: any) => !READ_TOOLS.includes(t.function.name));
+    return AGENT_TOOLS.filter((t: any) => !DATA_TOOLS.includes(t.function.name));
   }
   return AGENT_TOOLS;
 }
-// Guard eksekusi: tool data diblokir jika tidak diizinkan cfg
+
+// Guard eksekusi (defense-in-depth): blokir meski model tetap meminta tool
 function toolAllowed(name: string, cfg: Cfg) {
-  return cfg.withData || !READ_TOOLS.includes(name);
+  return cfg.withData || !DATA_TOOLS.includes(name);
 }
+
+const DENY_MSG = 'Error: AI tidak punya izin akses data. Aktifkan toggle "Beri AI akses data" di Setelan.';
 
 // Satu putaran agent: kirim percakapan + tools; kalau model minta tool call, eksekusi & ulangi (maks 6 putaran).
 export async function agentTurn(history: Msg[], cfg: Cfg, push: (m: Msg) => void): Promise<void> {
@@ -165,7 +174,11 @@ export async function agentTurn(history: Msg[], cfg: Cfg, push: (m: Msg) => void
       const fc = cand.find((p: any) => p.functionCall)?.functionCall;
       const txt = cand.filter((p: any) => p.text).map((p: any) => p.text).join('');
       if (fc) {
-        const out = await (TOOL_FNS[fc.name] || (async () => 'tool tidak dikenal'))(fc.args || {}, ctx);
+        let out = 'tool tidak dikenal';
+        try {
+          if (!toolAllowed(fc.name, cfg)) out = DENY_MSG;
+          else out = await (TOOL_FNS[fc.name] || (async () => 'tool tidak dikenal'))(fc.args || {}, ctx);
+        } catch (e: any) { out = 'Error: ' + (e?.message || e); }
         push({ role: 'assistant', content: `🔧 ${fc.name} → selesai` });
         convo.push({ role: 'assistant', content: txt || `[memanggil ${fc.name}]` });
         convo.push({ role: 'user', content: `[Hasil ${fc.name}]: ${out}` });
@@ -188,8 +201,12 @@ export async function agentTurn(history: Msg[], cfg: Cfg, push: (m: Msg) => void
       for (const tc of assistantMsg.tool_calls) {
         let out = 'tool tidak dikenal';
         try {
-          const fn = TOOL_FNS[tc.function.name];
-          if (fn) out = await fn(JSON.parse(tc.function.arguments || '{}'), ctx);
+          const name = tc.function.name;
+          if (!toolAllowed(name, cfg)) out = DENY_MSG;
+          else {
+            const fn = TOOL_FNS[name];
+            if (fn) out = await fn(JSON.parse(tc.function.arguments || '{}'), ctx);
+          }
         } catch (e: any) { out = 'Error: ' + (e?.message || e); }
         push({ role: 'assistant', content: `🔧 ${tc.function.name} → selesai` });
         convo.push({ role: 'tool', tool_call_id: tc.id, content: out });
