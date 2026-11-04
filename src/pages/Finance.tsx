@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Cell, Pie, PieChart, Tooltip } from 'recharts';
-import { db } from '../db';
+import { db, getKv } from '../db';
 import { idr, num, saveFile, today } from '../util';
 import { Ic, Deco } from '../icons';
 
@@ -24,6 +24,7 @@ export default function Finance() {
   const [f, setF] = useState({ amount: '', category: 'Makan', accountId: 0, toId: 0, note: '', date: today() });
   const [acc, setAcc] = useState({ name: '', balance0: '' });
   const [bd, setBd] = useState({ category: 'Makan', limit: '' });
+  const [ed, setEd] = useState<{ id: number; amount: string; category: string; note: string; date: string } | null>(null);
   useEffect(() => { if (accounts.length && !f.accountId) setF(x => ({ ...x, accountId: accounts[0].id!, toId: accounts[0].id! })); }, [accounts.length]);
 
   const bal = (id: number) => (accounts.find(a => a.id === id)?.balance0 || 0) +
@@ -39,6 +40,20 @@ export default function Finance() {
   const mOut = txs.filter(t => t.date.startsWith(m) && t.type === 'out' && t.category !== 'Transfer').reduce((s, t) => s + t.amount, 0);
   const mIn = txs.filter(t => t.date.startsWith(m) && t.type === 'in' && t.category !== 'Transfer').reduce((s, t) => s + t.amount, 0);
   const overBudget = budgets.filter(b => (spent[b.category] || 0) > b.limit).length;
+
+  // ── Net Worth: aset = kas + portofolio (nilai kini dari harga terakhir di KV) ──
+  const tradesNW = useLiveQuery(() => db.trades.toArray(), []) || [];
+  const [pfVal, setPfVal] = useState(0);
+  useEffect(() => {
+    (async () => {
+      const qty: Record<string, number> = {};
+      tradesNW.forEach(t => (qty[t.symbol] = (qty[t.symbol] || 0) + t.qty));
+      let v = 0;
+      for (const [s, q] of Object.entries(qty)) v += q * (await getKv('px:' + s, 0));
+      setPfVal(v);
+    })();
+  }, [tradesNW.length]);
+  const netWorth = total + pfVal;
 
   const add = async (type: string) => {
     const amount = num(f.amount);
@@ -132,6 +147,17 @@ export default function Finance() {
         {overBudget > 0 && <div className="ivWarn">⚠ {overBudget} anggaran terlampaui</div>}
       </section>
 
+      {/* Net Worth Tracker: kas + portofolio */}
+      <section className="ivBalance" style={{ paddingTop: 14 }}>
+        <div className="ivLabel">Net Worth (Kas + Portofolio)</div>
+        <div className="ivTotal">{idr(netWorth)}</div>
+        <div className="ivRow">
+          <span className="mute">Kas {idr(total)}</span>
+          <span className="mute">Portofolio {idr(pfVal)}</span>
+        </div>
+        <div className="tag" style={{ textAlign: 'center' }}>Kekayaan bersih = saldo semua rekening + nilai investasi kini</div>
+      </section>
+
       {/* Quick actions ala Ivy Wallet */}
       <div className="qaGrid">
         <QA t="out" label="Keluar" color="#f43f5e" icon={Ic.minus} />
@@ -195,6 +221,7 @@ export default function Finance() {
                 <div style={{ flex: 1, minWidth: 0 }}><div>{t.category}{t.note ? ` · ${t.note}` : ''}</div><div className="tag">{accounts.find(a => a.id === t.accountId)?.name}</div></div>
                 <div style={{ textAlign: 'right' }}>
                   <b className={t.type === 'in' ? 'pos' : 'neg'}>{t.type === 'in' ? '+' : '-'}{idr(t.amount)}</b><br />
+                  <button className="link" onClick={() => setEd({ id: t.id!, amount: String(t.amount), category: t.category, note: t.note || '', date: t.date })}>Edit</button>
                   <button className="link" onClick={() => db.txs.delete(t.id!)}>Hapus</button>
                 </div>
               </div>
@@ -203,6 +230,28 @@ export default function Finance() {
         ))}
         <button className="btn alt" onClick={csv}>Ekspor CSV</button>
       </section>
+
+      {/* Sheet edit transaksi */}
+      {ed && (
+        <>
+          <div className="sheetBk" onClick={() => setEd(null)} />
+          <div className="sheet">
+            <div className="sheetBar" />
+            <h2>Edit transaksi</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <input inputMode="numeric" placeholder="Nominal (Rp)" value={ed.amount} onChange={e => setEd({ ...ed, amount: e.target.value })} />
+              <select value={ed.category} onChange={e => setEd({ ...ed, category: e.target.value })}>{[...IN, ...OUT].map(c => <option key={c}>{c}</option>)}</select>
+              <input type="date" value={ed.date} onChange={e => setEd({ ...ed, date: e.target.value })} />
+              <input placeholder="Catatan" value={ed.note} onChange={e => setEd({ ...ed, note: e.target.value })} />
+              <button className="btn" onClick={async () => {
+                if (!num(ed.amount)) return;
+                await db.txs.update(ed.id, { amount: num(ed.amount), category: ed.category, note: ed.note, date: ed.date });
+                setEd(null);
+              }}>Simpan perubahan</button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* FAB tambah cepat */}
       <button className="fab" onClick={() => { setSheet('out'); setF(x => ({ ...x, category: OUT[0] })); }} aria-label="Catat transaksi"><Ic.plus size={24} strokeWidth={2.5} /></button>

@@ -37,6 +37,40 @@ export async function usdIdr(): Promise<number> {
   } catch { return getKv('usdidr', 16000); }
 }
 
+// ── Kurs USD/IDR HISTORIS (frankfurter.app — data ECB, gratis, tanpa key) ──
+// Dipakai DCA agar pembelian historis memakai kurs sesuai tanggalnya, bukan kurs hari ini.
+// Return { 'YYYY-MM-DD': kurs } utk rentang from..today; weekend/libur → kurs hari kerja terakhir.
+export async function usdIdrSeries(from: string): Promise<Record<string, number>> {
+  const cacheKey = 'fxusd:' + from;
+  const cached = await getKv(cacheKey, null);
+  if (cached && typeof cached === 'object') return cached as Record<string, number>;
+  try {
+    const u = `https://api.frankfurter.app/${from}..?from=USD&to=IDR`;
+    const r = await fetch(u);
+    if (!r.ok) throw new Error('frankfurter ' + r.status);
+    const j = await r.json();
+    const rates = j.rates || {};
+    const out: Record<string, number> = {};
+    for (const d of Object.keys(rates)) out[d] = rates[d].IDR;
+    const dates = Object.keys(out).sort();
+    if (!dates.length) throw new Error('frankfurter kosong');
+    let last = out[dates[0]];
+    const res: Record<string, number> = {};
+    for (let d = from; d <= today(); d = addDays(d, 1)) {
+      if (out[d]) last = out[d];
+      res[d] = last;
+    }
+    await setKv(cacheKey, res);
+    return res;
+  } catch {
+    // fallback: kurs tunggal hari ini utk semua tanggal (perilaku lama)
+    const now = await usdIdr();
+    const res: Record<string, number> = {};
+    for (let d = from; d <= today(); d = addDays(d, 1)) res[d] = now;
+    return res;
+  }
+}
+
 // Harga penutupan harian dalam mata uang asli aset: { 'YYYY-MM-DD': harga }
 export async function series(id: string, from: string): Promise<Record<string, number>> {
   const src = id.slice(0, 2), sym = id.slice(3);
@@ -55,10 +89,11 @@ export async function series(id: string, from: string): Promise<Record<string, n
   } else {
     const p1 = Math.floor(parse(from).getTime() / 1000) - 86400;
     const p2 = Math.floor(Date.now() / 1000) + 86400;
-    const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?period1=${p1}&period2=${p2}&interval=1d`);
+    const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?period1=${p1}&period2=${p2}&interval=1d&events=div%2Csplit`);
     const res = (await r.json())?.chart?.result?.[0];
     if (!res) throw new Error('Yahoo: data tidak ditemukan untuk ' + sym);
-    const ts: number[] = res.timestamp || [], cl: number[] = res.indicators.quote[0].close;
+    const ts: number[] = res.timestamp || [];
+    const cl: number[] = res.indicators?.adjclose?.[0]?.adjclose || res.indicators?.quote?.[0]?.close || [];
     ts.forEach((t, i) => { if (cl[i] != null) out[ymd(new Date(t * 1000))] = cl[i]; });
   }
   return out;

@@ -1,6 +1,6 @@
 import { db, DcaPlan, Trade } from './db';
 import { addDays, today } from './util';
-import { isIDR, series, usdIdr } from './market';
+import { isIDR, series, usdIdr, usdIdrSeries } from './market';
 
 // Isi pembelian harian dari hari terakhir dijalankan sampai hari ini (backfill).
 // Tanggal mulai di masa lalu = mode backtest. Hari tanpa harga (libur bursa) dilewati.
@@ -14,7 +14,8 @@ export async function runPlan(plan: DcaPlan): Promise<number> {
   if (total < 99 || total > 101) throw new Error(`${plan.name}: total alokasi ${total.toFixed(1)}% tidak valid`);
   const norm = total / 100; // normalisasi agar total dana = plan.daily persis
 
-  const rate = await usdIdr();
+  const rate = await usdIdr(); // fallback & harga kini
+  const fx = isIDR(Object.keys(plan.alloc).find(a => !isIDR(a)) || '') ? null : await usdIdrSeries(from); // kurs historis per tanggal
   const assets = Object.keys(plan.alloc);
   const ser: Record<string, Record<string, number>> = {};
   for (let i = 0; i < assets.length; i++) {
@@ -27,7 +28,8 @@ export async function runPlan(plan: DcaPlan): Promise<number> {
     for (const [a, pct] of Object.entries(plan.alloc)) {
       const px = ser[a][d];
       if (!px) continue;
-      const price = isIDR(a) ? px : px * rate;
+      // kurs sesuai tanggal pembelian (historis), bukan satu kurs hari ini
+      const price = isIDR(a) ? px : px * (fx?.[d] || rate);
       const amount = (plan.daily * pct) / (100 * norm); // alokasi dinormalisasi
       rows.push({ planId: plan.id!, date: d, symbol: a, price, amount, qty: price > 0 ? amount / price : 0 });
     }

@@ -25,6 +25,7 @@ export default function Todo() {
   const [sel, setSel] = useState(today());
   const [cur, setCur] = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const [sheet, setSheet] = useState(false);
+  const [edit, setEdit] = useState<Task | null>(null);
   const [f, setF] = useState({ title: '', time: '', repeat: 'none', priority: 2 });
 
   const y = cur.getFullYear(), mo = cur.getMonth();
@@ -100,6 +101,7 @@ export default function Todo() {
                 {t.repeat !== 'none' && ` · ${({ daily: 'tiap hari', weekly: 'tiap minggu', monthly: 'tiap bulan' } as any)[t.repeat]}`}
               </div>
             </span>
+            <button className="link" title="Edit tugas" onClick={() => setEdit(t)}><Ic.pencil size={13} /></button>
             <button className="link" title="Catatan tugas" onClick={() => {
               window.dispatchEvent(new CustomEvent('notefor', { detail: { taskId: t.id, date: sel, title: t.title } }));
             }}><Ic.pencil size={13} /></button>
@@ -107,6 +109,29 @@ export default function Todo() {
           </div>
         ))}
       </section>
+
+      {/* Sheet edit tugas */}
+      {edit && (
+        <>
+          <div className="sheetBk" onClick={() => setEdit(null)} />
+          <div className="sheet">
+            <div className="sheetBar" />
+            <h2>Edit tugas</h2>
+            <form onSubmit={e => { e.preventDefault(); if (!edit.title.trim()) return; db.tasks.update(edit.id!, { title: edit.title.trim(), time: edit.time, priority: edit.priority, repeat: edit.repeat, date: edit.date }); setEdit(null); }} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <input value={edit.title} onChange={e => setEdit({ ...edit, title: e.target.value })} />
+              <input type="date" value={edit.date} onChange={e => setEdit({ ...edit, date: e.target.value })} />
+              <div className="g2">
+                <input type="time" value={edit.time} onChange={e => setEdit({ ...edit, time: e.target.value })} />
+                <select value={edit.priority} onChange={e => setEdit({ ...edit, priority: +e.target.value as 1 | 2 | 3 })}><option value={1}>Prioritas tinggi</option><option value={2}>Sedang</option><option value={3}>Rendah</option></select>
+              </div>
+              <select value={edit.repeat} onChange={e => setEdit({ ...edit, repeat: e.target.value as any })}>
+                <option value="none">Sekali</option><option value="daily">Tiap hari</option><option value="weekly">Tiap minggu</option><option value="monthly">Tiap bulan</option>
+              </select>
+              <button className="btn" type="submit">Simpan perubahan</button>
+            </form>
+          </div>
+        </>
+      )}
 
       {/* FAB + sheet tambah */}
       <button className="fab" onClick={() => setSheet(true)} aria-label="Tambah tugas"><Ic.plus size={24} strokeWidth={2.5} /></button>

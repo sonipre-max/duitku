@@ -91,6 +91,20 @@ export default function Notes() {
   const toggleReveal = (id: number) => setReveal(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   const togglePin = (n: Note) => db.notes.update(n.id!, { pinned: !n.pinned });
   const del = (n: Note) => { if (confirm('Hapus catatan ini?')) db.notes.delete(n.id!); };
+  // edit: buka sheet terisi (body secret didekripsi dulu)
+  const [editing, setEditing] = useState<Note | null>(null);
+  const startEdit = async (n: Note) => {
+    const body = n.secret ? await decBody(n.body) : n.body;
+    setEditing(n); setF({ title: n.title, body, secret: n.secret, date: n.date, taskId: n.taskId || 0 });
+    setSheet(true);
+  };
+  const saveEdit = async () => {
+    if (!editing) return save();
+    if (!f.title.trim() && !f.body.trim()) return;
+    const body = f.secret ? await encBody(f.body) : f.body;
+    await db.notes.update(editing.id!, { title: f.title.trim() || f.body.slice(0, 30), body, secret: f.secret, date: f.date, taskId: f.taskId || undefined, updatedAt: new Date().toISOString() });
+    setEditing(null); setF({ title: '', body: '', secret: false, date: today(), taskId: 0 }); setSheet(false);
+  };
 
 
 
@@ -113,17 +127,17 @@ export default function Notes() {
               : 'Catatan yang nempel ke jadwal/tugas harian. Pilih tugas & tanggalnya, biar gampang diinget pas jadwalnya.'}</span>
           </div>
         )}
-        {list.map(n => <NoteCard key={n.id} n={n} tref={n.kind === 'tugas' ? (taskTitle(n.taskId, tasks) || 'Tugas (sudah dihapus)') : ''} hidden={n.secret && !reveal.has(n.id!)} onReveal={toggleReveal} onPin={togglePin} onDel={del} />)}
+        {list.map(n => <NoteCard key={n.id} n={n} tref={n.kind === 'tugas' ? (taskTitle(n.taskId, tasks) || 'Tugas (sudah dihapus)') : ''} hidden={n.secret && !reveal.has(n.id!)} onReveal={toggleReveal} onPin={togglePin} onDel={del} onEdit={startEdit} />)}
       </section>
 
-      <button className="fab" onClick={() => setSheet(true)} aria-label="Catatan baru"><Ic.plus size={24} strokeWidth={2.5} /></button>
+      <button className="fab" onClick={() => { setEditing(null); setF({ title: '', body: '', secret: false, date: today(), taskId: 0 }); setSheet(true); }} aria-label="Catatan baru"><Ic.plus size={24} strokeWidth={2.5} /></button>
       {sheet && (
         <>
           <div className="sheetBk" onClick={() => setSheet(false)} />
           <div className="sheet">
             <div className="sheetBar" />
-            <h2>{tab === 'umum' ? 'Catatan umum baru' : 'Notes tugas baru'}</h2>
-            <form onSubmit={e => { e.preventDefault(); save(); }} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            <h2>{editing ? 'Edit catatan' : tab === 'umum' ? 'Catatan umum baru' : 'Notes tugas baru'}</h2>
+            <form onSubmit={e => { e.preventDefault(); saveEdit(); }} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               <input placeholder="Judul (mis. Seed phrase wallet / Tugas Matematika)" autoFocus value={f.title} onChange={e => setF({ ...f, title: e.target.value })} />
               <textarea rows={4} placeholder={tab === 'umum' ? 'Isi catatan… (sandi, key, apa aja)' : 'Catatan harian untuk jadwal/tugas ini…'} value={f.body} onChange={e => setF({ ...f, body: e.target.value })} />
               {tab === 'tugas' && (
@@ -142,7 +156,7 @@ export default function Notes() {
                   <span>🔒 Simpan sebagai rahasia (disembunyikan, ketuk untuk lihat)</span>
                 </label>
               )}
-              <button className="btn" type="submit">Simpan catatan</button>
+              <button className="btn" type="submit">{editing ? 'Simpan perubahan' : 'Simpan catatan'}</button>
             </form>
           </div>
         </>
@@ -152,7 +166,7 @@ export default function Notes() {
 }
 
 // Kartu catatan terpisah biar hooks aman (reveal = decrypt on demand)
-function NoteCard({ n, tref, hidden, onReveal, onPin, onDel }: { n: Note; tref: string; hidden: boolean; onReveal: (id: number) => void; onPin: (n: Note) => void; onDel: (n: Note) => void }) {
+function NoteCard({ n, tref, hidden, onReveal, onPin, onDel, onEdit }: { n: Note; tref: string; hidden: boolean; onReveal: (id: number) => void; onPin: (n: Note) => void; onDel: (n: Note) => void; onEdit: (n: Note) => void }) {
   const [shown, setShown] = useState<string | null>(null);
   useEffect(() => { let on = true; if (!hidden && n.secret && shown === null) decBody(n.body).then(t => on && setShown(t)); return () => { on = false; }; }, [hidden, n.secret, n.body]);
   const body = n.secret ? (hidden ? '••••••••••••' : (shown ?? '…')) : n.body;
@@ -161,6 +175,7 @@ function NoteCard({ n, tref, hidden, onReveal, onPin, onDel }: { n: Note; tref: 
       <div className="row" style={{ border: 0, padding: 0 }}>
         <b className="ntTitle">{n.pinned ? '📌 ' : ''}{n.title}</b>
         <span className="ntActs">
+          <button title="Edit" onClick={() => onEdit(n)}><Ic.pencil size={15} /></button>
           <button title="Pin" onClick={() => onPin(n)}><Ic.star size={15} color={n.pinned ? '#f59e0b' : undefined} fill={n.pinned ? '#f59e0b' : 'none'} /></button>
           <button title="Hapus" onClick={() => onDel(n)}><Ic.x size={15} /></button>
         </span>
