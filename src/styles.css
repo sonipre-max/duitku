@@ -721,3 +721,8 @@ html[data-theme='gold'] .qsItem,html[data-theme='gold'] .qsNote,html[data-theme=
 html[data-theme='cyber'] .qsItem,html[data-theme='cyber'] .qsNote,html[data-theme='cyber'] .agendaCard,html[data-theme='cyber'] .motto,html[data-theme='cyber'] section,html[data-theme='cyber'] .wcard,html[data-theme='cyber'] .dashHero,html[data-theme='cyber'] .dashGreet{
   background:linear-gradient(160deg,rgba(76,29,149,.72),rgba(30,20,60,.55)) !important;
   border-color:rgba(168,85,247,.65) !important}
+
+
+/* motto banner: lebih pekat biar warna rumput gak tembus */
+html[data-theme='gold'] .motto{background:linear-gradient(160deg,rgba(255,238,190,.85),rgba(255,209,120,.7)) !important}
+html[data-theme='cyber'] .motto{background:linear-gradient(160deg,rgba(76,29,149,.88),rgba(30,20,60,.78)) !important}
