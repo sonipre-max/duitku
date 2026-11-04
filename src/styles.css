@@ -750,3 +750,9 @@ html[data-theme='cyber'] .ntCard{background:linear-gradient(160deg,rgba(76,29,14
 .ntFoot{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 .ntSecretRow{display:flex;align-items:center;gap:8px;font-size:12.5px}
 .ntSecretRow input{width:auto}
+
+
+/* nav 7 item: rapatkan biar semua muat */
+nav.floatnav{gap:1px;padding:5px 6px}
+nav.floatnav button{padding:5px 6px;min-width:44px}
+nav.floatnav .nlab{font-size:9px}
