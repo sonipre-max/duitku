@@ -90,6 +90,14 @@ export default function Invest() {
       </div>
       {msg && <div className="tag" style={{ textAlign: 'center' }}>{msg}</div>}
 
+      {plans.length === 0 && (
+        <section className="ivEmpty">
+          <div className="ivEmptyIco">🌱</div>
+          <b>Belum ada rencana investasi</b>
+          <span>Yuk mulai nabung aset, Bos! Ketuk <b>Rencana baru</b> di atas — pilih nominal harian & alokasi (BTC, Emas, Saham), nanti DCA jalan otomatis tiap hari dengan harga pasar beneran (simulasi, tanpa uang asli).</span>
+        </section>
+      )}
+
       {plans.map(p => {
         const tr = trades.filter(t => t.planId === p.id);
         const by: Record<string, { q: number; c: number }> = {};

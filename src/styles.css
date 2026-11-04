@@ -726,3 +726,10 @@ html[data-theme='cyber'] .qsItem,html[data-theme='cyber'] .qsNote,html[data-them
 /* motto banner: lebih pekat biar warna rumput gak tembus */
 html[data-theme='gold'] .motto{background:linear-gradient(160deg,rgba(255,238,190,.85),rgba(255,209,120,.7)) !important}
 html[data-theme='cyber'] .motto{background:linear-gradient(160deg,rgba(76,29,149,.88),rgba(30,20,60,.78)) !important}
+
+
+/* empty state invest */
+.ivEmpty{margin-top:14px;text-align:center;padding:26px 18px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ivEmptyIco{font-size:38px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.25))}
+.ivEmpty b{font-size:15px}
+.ivEmpty span{font-size:12.5px;opacity:.85;line-height:1.6;max-width:300px}
