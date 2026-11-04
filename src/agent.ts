@@ -60,7 +60,10 @@ export const TOOL_FNS: Record<string, Fn> = {
     await db.txs.add({ date: a.date || ctx.today, type, amount: a.amount, category: a.category || 'Lainnya', accountId: accId, note: a.note || 'Dicatat via AI' });
     return `OK: transaksi ${type === 'in' ? 'pemasukan' : 'pengeluaran'} Rp${a.amount} (${a.category || 'Lainnya'}) tersimpan.`;
   },
-  delete_transaction: async (a) => { const { db } = await import('./db'); await db.txs.delete(a.id); return `OK: transaksi #${a.id} dihapus.`; },
+  delete_transaction: async (a) => {
+    if (!(globalThis as any).__duitkuConfirm?.(`Hapus transaksi #${a.id}?`)) return 'DIBATALKAN: user tidak konfirmasi. Jangan ulangi tanpa persetujuan.';
+    const { db } = await import('./db'); await db.txs.delete(a.id); return `OK: transaksi #${a.id} dihapus.`;
+  },
   list_tasks: async (a, ctx) => {
     const { db } = await import('./db');
     const list = a.all ? await db.tasks.toArray() : (await db.tasks.toArray()).filter((t: any) => t.date === (a.date || ctx.today));
@@ -83,7 +86,10 @@ export const TOOL_FNS: Record<string, Fn> = {
     else await db.tasks.update(t.id!, { doneOn: [...(t.doneOn || []), ctx.today] });
     return `OK: tugas "${t.title}" ditandai selesai.`;
   },
-  delete_task: async (a) => { const { db } = await import('./db'); await db.tasks.delete(a.id); return `OK: tugas #${a.id} dihapus.`; },
+  delete_task: async (a) => {
+    if (!(globalThis as any).__duitkuConfirm?.(`Hapus tugas #${a.id}?`)) return 'DIBATALKAN: user tidak konfirmasi. Jangan ulangi tanpa persetujuan.';
+    const { db } = await import('./db'); await db.tasks.delete(a.id); return `OK: tugas #${a.id} dihapus.`;
+  },
   list_accounts: async () => {
     const { db } = await import('./db');
     const accounts = await db.accounts.toArray();

@@ -10,7 +10,10 @@ const occurs = (t: Task, d: string) => {
   if (t.repeat === 'none') return t.date === d;
   if (t.repeat === 'daily') return true;
   const a = parse(t.date), b = parse(d);
-  return t.repeat === 'weekly' ? a.getDay() === b.getDay() : a.getDate() === b.getDate();
+  if (t.repeat === 'weekly') return a.getDay() === b.getDay();
+  // monthly: tgl 29-31 tetap muncul di bulan pendek (hari terakhir bulan)
+  if (a.getDate() === b.getDate()) return true;
+  return a.getDate() >= 29 && b.getDate() === new Date(b.getFullYear(), b.getMonth() + 1, 0).getDate() && a.getDate() > b.getDate();
 };
 const isDone = (t: Task, d: string) => (t.repeat === 'none' ? t.done : t.doneOn.includes(d));
 const PRI = ['', 'Tinggi', 'Sedang', 'Rendah'];

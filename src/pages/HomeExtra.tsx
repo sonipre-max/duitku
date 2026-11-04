@@ -42,7 +42,16 @@ export default function HomeExtra({ go, theme }: { go: (t: string) => void; them
     })();
   }, [trades.length]);
 
-  const todays = tasks.filter(t => t.repeat === 'none' ? t.date === today() && !t.done : t.repeat === 'daily');
+  // filter benar: none=tanggal ini & belum selesai; daily=semua hari (cek doneOn); weekly/monthly=pola berulang
+  const occursX = (t: any, d: string) => {
+    if (d < t.date) return false;
+    if (t.repeat === 'none') return t.date === d && !t.done;
+    if (t.repeat === 'daily') return !t.doneOn.includes(d);
+    const a = t.date, b = d;
+    const dm = (x: string) => +x.slice(8), mm = (x: string) => +x.slice(5, 7);
+    return t.repeat === 'weekly' ? new Date(a).getDay() === new Date(b).getDay() : (dm(a) === dm(b) || (dm(b) === new Date(+b.slice(0,4), mm(b), 0).getDate() && dm(a) > dm(b)));
+  };
+  const todays = tasks.filter(t => occursX(t, today()));
   const doneToday = tasks.filter(t => t.date === today() && t.done);
   const invested = trades.reduce((s, t) => s + t.amount, 0);
   const value = Object.values(px).reduce((s, v) => s + v, 0);
@@ -79,7 +88,7 @@ export default function HomeExtra({ go, theme }: { go: (t: string) => void; them
               </Pie>
             </PieChart>
             <div className="legend">
-              {growth !== null && <div className="big pos">+{growth.toFixed(1)}%</div>}
+              {growth !== null && <div className={'big ' + (growth >= 0 ? 'pos' : 'neg')}>{growth >= 0 ? '+' : ''}{growth.toFixed(1)}%</div>}
               <div className="tag">7 hari · nilai {idr(value)}</div>
               {donut.map(d => (
                 <div className="lgrow" key={d.name}><span className="ldot" style={{ background: DONUT_C[d.name] }} />{d.name} <b>{d.pct}%</b></div>

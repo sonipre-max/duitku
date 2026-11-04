@@ -10,9 +10,14 @@ import { db } from './db';
 import { runAll } from './dca';
 import { Ic } from './icons';
 
-const sha = async (s: string) =>
-  [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))]
-    .map(b => b.toString(16).padStart(2, '0')).join('');
+// sama dgn Settings: salt + iterasi (kompatibel — PIN lama tanpa salt tidak valid, user set ulang PIN sekali)
+const sha = async (s: string) => {
+  const enc = new TextEncoder();
+  const salt = localStorage.getItem('pinsalt') || '';
+  let data = enc.encode(s + ':' + salt);
+  for (let i = 0; i < 50000; i++) data = new Uint8Array(await crypto.subtle.digest('SHA-256', data));
+  return [...data].map(b => b.toString(16).padStart(2, '0')).join('');
+};
 
 function Lock({ onOk }: { onOk: () => void }) {
   const [pin, setPin] = useState(''); const [err, setErr] = useState('');

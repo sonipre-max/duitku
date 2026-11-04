@@ -7,7 +7,31 @@ import { Ic, Deco } from '../icons';
 // Notes DuitKu — terinspirasi Joplin (57k★: notebook terpisah + catatan tertanggal)
 // dan Standard Notes (6.7k★: vault utk sandi/key/API key yang tersembunyi).
 // Dua tab terpisah: Catatan Umum & Notes To Do (per tugas/jadwal).
+
+// ── Enkripsi secret notes: AES-GCM, key device-bound (dari pinsalt) ──
+const getKey = async () => {
+  let salt = localStorage.getItem('pinsalt');
+  if (!salt) { const x = crypto.getRandomValues(new Uint8Array(16)); salt = [...x].map(b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('pinsalt', salt); }
+  const raw = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('duitku-notes:' + salt));
+  return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
+};
+const encBody = async (plain: string) => {
+  const k = await getKey(); const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, new TextEncoder().encode(plain));
+  return 'enc:' + btoa(String.fromCharCode(...iv) + String.fromCharCode(...new Uint8Array(ct)));
+};
+const decBody = async (stored: string) => {
+  if (!stored.startsWith('enc:')) return stored;
+  try {
+    const bin = atob(stored.slice(4)); const iv = new Uint8Array(bin.slice(0, 12).split('').map(c => c.charCodeAt(0)));
+    const ct = new Uint8Array(bin.slice(12).split('').map(c => c.charCodeAt(0)));
+    const k = await getKey();
+    return new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, k, ct));
+  } catch { return '(tidak bisa didekripsi)'; }
+};
+
 const fmtDate = (d: string) => d ? parse(d).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : '';
+const taskTitle = (id?: number, tasks?: Task[]) => tasks?.find(t => t.id === id)?.title;
 
 export default function Notes() {
   const notes = useLiveQuery(() => db.notes.toArray(), []) || [];
@@ -38,8 +62,9 @@ export default function Notes() {
   const save = async () => {
     if (!f.title.trim() && !f.body.trim()) return;
     const now = new Date().toISOString();
+    const body = f.secret ? await encBody(f.body) : f.body;
     await db.notes.add({
-      title: f.title.trim() || f.body.slice(0, 30), body: f.body, kind: tab,
+      title: f.title.trim() || f.body.slice(0, 30), body, kind: tab,
       secret: f.secret, date: f.date, taskId: f.taskId || undefined, pinned: false,
       createdAt: now, updatedAt: now,
     });
@@ -50,7 +75,7 @@ export default function Notes() {
   const togglePin = (n: Note) => db.notes.update(n.id!, { pinned: !n.pinned });
   const del = (n: Note) => { if (confirm('Hapus catatan ini?')) db.notes.delete(n.id!); };
 
-  const taskTitle = (id?: number) => tasks.find((t: Task) => t.id === id)?.title;
+
 
   return (
     <>
@@ -71,30 +96,7 @@ export default function Notes() {
               : 'Catatan yang nempel ke jadwal/tugas harian. Pilih tugas & tanggalnya, biar gampang diinget pas jadwalnya.'}</span>
           </div>
         )}
-        {list.map(n => {
-          const hidden = n.secret && !reveal.has(n.id!);
-          return (
-            <div className="ntCard" key={n.id}>
-              <div className="row" style={{ border: 0, padding: 0 }}>
-                <b className="ntTitle">{n.pinned ? '📌 ' : ''}{n.title}</b>
-                <span className="ntActs">
-                  <button title="Pin" onClick={() => togglePin(n)}><Ic.star size={15} color={n.pinned ? '#f59e0b' : undefined} fill={n.pinned ? '#f59e0b' : 'none'} /></button>
-                  <button title="Hapus" onClick={() => del(n)}><Ic.x size={15} /></button>
-                </span>
-              </div>
-              {n.kind === 'tugas' && (
-                <div className="ntRef">🎯 {taskTitle(n.taskId) || 'Tugas (sudah dihapus)'} · {fmtDate(n.date)}</div>
-              )}
-              <div className={'ntBody' + (hidden ? ' secret' : '')}>
-                {hidden ? '••••••••••••' : n.body}
-              </div>
-              <div className="ntFoot">
-                <span className="tag">{fmtDate(n.date)}</span>
-                {n.secret && <button className="link" onClick={() => toggleReveal(n.id!)}>{hidden ? '👁 Tampilkan' : '🙈 Sembunyikan'}</button>}
-              </div>
-            </div>
-          );
-        })}
+        {list.map(n => <NoteCard key={n.id} n={n} tref={n.kind === 'tugas' ? (taskTitle(n.taskId, tasks) || 'Tugas (sudah dihapus)') : ''} hidden={n.secret && !reveal.has(n.id!)} onReveal={toggleReveal} onPin={togglePin} onDel={del} />)}
       </section>
 
       <button className="fab" onClick={() => setSheet(true)} aria-label="Catatan baru"><Ic.plus size={24} strokeWidth={2.5} /></button>
@@ -129,5 +131,31 @@ export default function Notes() {
         </>
       )}
     </>
+  );
+}
+
+// Kartu catatan terpisah biar hooks aman (reveal = decrypt on demand)
+function NoteCard({ n, tref, hidden, onReveal, onPin, onDel }: { n: Note; tref: string; hidden: boolean; onReveal: (id: number) => void; onPin: (n: Note) => void; onDel: (n: Note) => void }) {
+  const [shown, setShown] = useState<string | null>(null);
+  useEffect(() => { let on = true; if (!hidden && n.secret && shown === null) decBody(n.body).then(t => on && setShown(t)); return () => { on = false; }; }, [hidden, n.secret, n.body]);
+  const body = n.secret ? (hidden ? '••••••••••••' : (shown ?? '…')) : n.body;
+  return (
+    <div className="ntCard">
+      <div className="row" style={{ border: 0, padding: 0 }}>
+        <b className="ntTitle">{n.pinned ? '📌 ' : ''}{n.title}</b>
+        <span className="ntActs">
+          <button title="Pin" onClick={() => onPin(n)}><Ic.star size={15} color={n.pinned ? '#f59e0b' : undefined} fill={n.pinned ? '#f59e0b' : 'none'} /></button>
+          <button title="Hapus" onClick={() => onDel(n)}><Ic.x size={15} /></button>
+        </span>
+      </div>
+      {n.kind === 'tugas' && (
+        <div className="ntRef">🎯 {tref} · {fmtDate(n.date)}</div>
+      )}
+      <div className={'ntBody' + (hidden ? ' secret' : '')}>{body}</div>
+      <div className="ntFoot">
+        <span className="tag">{fmtDate(n.date)}</span>
+        {n.secret && <button className="link" onClick={() => onReveal(n.id!)}>{hidden ? '👁 Tampilkan' : '🙈 Sembunyikan'}</button>}
+      </div>
+    </div>
   );
 }

@@ -4,7 +4,6 @@ import { Cell, Pie, PieChart, Tooltip } from 'recharts';
 import { db } from '../db';
 import { idr, num, saveFile, today } from '../util';
 import { Ic, Deco } from '../icons';
-import HomeExtra from './HomeExtra';
 
 const OUT = ['Makan', 'Transport', 'Belanja', 'Tagihan', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Lainnya'];
 const IN = ['Gaji', 'Bonus', 'Usaha', 'Investasi', 'Lainnya'];
@@ -27,7 +26,7 @@ export default function Finance() {
   const [bd, setBd] = useState({ category: 'Makan', limit: '' });
   useEffect(() => { if (accounts.length && !f.accountId) setF(x => ({ ...x, accountId: accounts[0].id!, toId: accounts[0].id! })); }, [accounts.length]);
 
-  const bal = (id: number) => accounts.find(a => a.id === id)!.balance0 +
+  const bal = (id: number) => (accounts.find(a => a.id === id)?.balance0 || 0) +
     txs.filter(t => t.accountId === id).reduce((s, t) => s + (t.type === 'in' ? t.amount : -t.amount), 0);
   const m = today().slice(0, 7);
   const spent: Record<string, number> = {};
@@ -79,7 +78,7 @@ export default function Finance() {
               <>
                 <select value={bd.category} onChange={e => setBd({ ...bd, category: e.target.value })}>{OUT.map(c => <option key={c}>{c}</option>)}</select>
                 <input placeholder="Batas (Rp)" inputMode="numeric" value={bd.limit} onChange={e => setBd({ ...bd, limit: e.target.value })} />
-                <button className="btn" onClick={async () => { if (num(bd.limit)) { await db.budgets.add({ category: bd.category, limit: num(bd.limit) }); setBd({ ...bd, limit: '' }); setSheet(''); } }}>Simpan anggaran</button>
+                <button className="btn" onClick={async () => { if (num(bd.limit)) { const ex = budgets.find(b => b.category === bd.category); if (ex) await db.budgets.update(ex.id!, { limit: num(bd.limit) }); else await db.budgets.add({ category: bd.category, limit: num(bd.limit) }); setBd({ ...bd, limit: '' }); setSheet(''); } }}>Simpan anggaran</button>
               </>
             ) : (
               <>

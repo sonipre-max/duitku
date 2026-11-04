@@ -5,8 +5,13 @@ import { saveFile } from '../util';
 import { THEMES, getTheme, setTheme, applyWallpaper, wallOn, ThemeId } from '../theme';
 import { Ic, Deco } from '../icons';
 
-const sha = async (s: string) =>
-  [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(b => b.toString(16).padStart(2, '0')).join('');
+// PIN: salt acak + 50k iterasi SHA-256 (stretching ringan, cukup utk PIN 4-6 digit lokal)
+const sha = async (s: string) => {
+  const enc = new TextEncoder();
+  let data = enc.encode(s + ':' + (localStorage.getItem('pinsalt') || (() => { const x = crypto.getRandomValues(new Uint8Array(16)); localStorage.setItem('pinsalt', [...x].map(b => b.toString(16).padStart(2, '0')).join('')); return [...x].map(b => b.toString(16).padStart(2, '0')).join(''); })()));
+  for (let i = 0; i < 50000; i++) data = new Uint8Array(await crypto.subtle.digest('SHA-256', data));
+  return [...data].map(b => b.toString(16).padStart(2, '0')).join('');
+};
 
 // Settings rapi: section berkelompok dengan ikon + deskripsi
 export default function Settings() {
@@ -20,15 +25,16 @@ export default function Settings() {
 
   const backup = async () => {
     const o: any = {};
-    for (const t of TABLES) o[t] = await (db as any)[t].toArray();
+    for (const t of [...TABLES, 'notes', 'kv'] as any[]) o[t] = await (db as any)[t].toArray();
     await saveFile(`duitku-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(o));
   };
   const restore = async (f?: File) => {
     if (!f) return;
     try {
       const o = JSON.parse(await f.text());
-      await db.transaction('rw', TABLES.map(t => (db as any)[t]), async () => {
-        for (const t of TABLES) { await (db as any)[t].clear(); if (o[t]?.length) await (db as any)[t].bulkAdd(o[t]); }
+      const all = [...TABLES, 'notes', 'kv'] as any[];
+      await db.transaction('rw', all.map(t => (db as any)[t]), async () => {
+        for (const t of all) { await (db as any)[t].clear(); if (o[t]?.length) await (db as any)[t].bulkAdd(o[t]); }
       });
       setMsg('Data dipulihkan.');
     } catch { setMsg('File backup tidak valid.'); }
@@ -107,7 +113,7 @@ export default function Settings() {
             <input type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={e => restore(e.target.files?.[0])} />
           </label>
         </div>
-        <div className="tag">Memulihkan mengganti semua data saat ini. API key tidak ikut di-backup.</div>
+        <div className="tag">Memulihkan mengganti semua data saat ini (termasuk catatan). API key tidak ikut di-backup.</div>
         {msg && <div className="pos">{msg}</div>}
       </Sec>
     </>

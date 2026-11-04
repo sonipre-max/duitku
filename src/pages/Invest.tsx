@@ -47,7 +47,7 @@ export default function Invest() {
   const valAll = Object.entries(qtyAll).reduce((s, [k, q]) => s + q * (px[k] || 0), 0);
   const plAll = valAll - invAll;
   const plPct = invAll ? (plAll / invAll) * 100 : 0;
-  // sparkline nilai kumulatif pembelian (aproksimasi pertumbuhan)
+  // sparkline akumulasi modal (cost basis) — BUKAN performance; nilai kini ada di hero
   const spark = (() => {
     const byDate: Record<string, number> = {};
     trades.forEach(t => (byDate[t.date] = (byDate[t.date] || 0) + t.amount));
@@ -75,6 +75,7 @@ export default function Invest() {
                 <Area type="monotone" dataKey="v" stroke="var(--ac)" strokeWidth={2} fill="url(#sg)" />
               </AreaChart>
             </ResponsiveContainer>
+            <div className="tag" style={{ textAlign: 'center' }}>Akumulasi modal (bukan grafik performance)</div>
           </div>
         )}
         <div className="tag" style={{ textAlign: 'center' }}>Simulasi harga pasar sungguhan — tanpa uang asli.</div>
