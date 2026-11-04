@@ -24,7 +24,13 @@ function Lock({ onOk }: { onOk: () => void }) {
   const [wait, setWait] = useState(0);
   const go = async () => {
     if (wait > 0) return;
-    if ((await sha(pin)) === localStorage.getItem('pin')) { localStorage.removeItem('pinfails'); onOk(); return; }
+    if ((await sha(pin)) === localStorage.getItem('pin')) {
+      localStorage.removeItem('pinfails');
+      // Session-only: dipakai Notes vault agar secret notes benar-benar terikat PIN user
+      sessionStorage.setItem('duitku-pin-session', pin);
+      onOk();
+      return;
+    }
     const fails = (+localStorage.getItem('pinfails') || 0) + 1;
     localStorage.setItem('pinfails', String(fails));
     // jeda progresif: 3x salah → 10d, 5x → 30d, 8x → 2m, 12x → 5 menit
