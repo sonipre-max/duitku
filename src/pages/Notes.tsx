@@ -69,7 +69,8 @@ export default function Notes() {
     const h = (e: any) => {
       const { taskId, date, title } = e.detail || {};
       setTab('tugas');
-      setF(cur => ({ ...cur, taskId: taskId || 0, date: date || today(), title: 'Catatan: ' + (title || '') }));
+      setEditing(null); // jangan sampai menimpa catatan lama yang lagi diedit
+      setF({ title: 'Catatan: ' + (title || ''), body: '', secret: false, date: date || today(), taskId: taskId || 0 });
       setSheet(true);
     };
     window.addEventListener('notefor', h);
@@ -111,6 +112,7 @@ export default function Notes() {
   const [editing, setEditing] = useState<Note | null>(null);
   const startEdit = async (n: Note) => {
     const body = n.secret ? await decBody(n.body) : n.body;
+    setTab(n.kind); // edit harus di tab sesuai kind — kalau tidak, save masuk tab salah
     setEditing(n); setF({ title: n.title, body, secret: n.secret, date: n.date, taskId: n.taskId || 0 });
     setSheet(true);
   };

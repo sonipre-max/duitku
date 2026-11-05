@@ -117,7 +117,7 @@ export default function Todo() {
           <div className="sheet">
             <div className="sheetBar" />
             <h2>Edit tugas</h2>
-            <form onSubmit={e => { e.preventDefault(); if (!edit.title.trim()) return; db.tasks.update(edit.id!, { title: edit.title.trim(), time: edit.time, priority: edit.priority, repeat: edit.repeat, date: edit.date }); setEdit(null); }} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            <form onSubmit={e => { e.preventDefault(); if (!edit.title.trim()) return; (async () => { const upd = { title: edit.title.trim(), time: edit.time, priority: edit.priority, repeat: edit.repeat, date: edit.date }; await db.tasks.update(edit.id!, upd); cancel(edit.id!); schedule({ ...edit, ...upd } as Task); })(); setEdit(null); }} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               <input value={edit.title} onChange={e => setEdit({ ...edit, title: e.target.value })} />
               <input type="date" value={edit.date} onChange={e => setEdit({ ...edit, date: e.target.value })} />
               <div className="g2">

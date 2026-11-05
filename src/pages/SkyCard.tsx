@@ -85,9 +85,11 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
   const dayLabel = dayOff === 0 ? 'Hari Ini' : dayOff === -1 ? 'Kemarin' : dayOff === 1 ? 'Besok' : d.toLocaleDateString('id-ID', { weekday: 'long' });
 
   // kelompokkan: berlangsung / mendatang / lewat
-  const ongoing = isToday ? agenda.filter(t => { const s = toMin(t.time); return s >= 0 && s <= nowMin && !t.done; }) : [];
-  const upcoming = agenda.filter(t => !t.done && !ongoing.includes(t) && (!isToday || toMin(t.time) > nowMin));
-  const pastList = isToday ? agenda.filter(t => t.done || (toMin(t.time) >= 0 && toMin(t.time) <= nowMin)) : [];
+  // selesai utk tanggal tertentu: none→done; repeat→doneOn mencakup tanggal
+  const doneOnDate = (t: any) => t.done || (t.repeat !== 'none' && (t.doneOn || []).includes(viewDate));
+  const ongoing = isToday ? agenda.filter(t => { const s = toMin(t.time); return s >= 0 && s <= nowMin && !doneOnDate(t); }) : [];
+  const upcoming = agenda.filter(t => !doneOnDate(t) && !ongoing.includes(t) && (!isToday || toMin(t.time) > nowMin));
+  const pastList = isToday ? agenda.filter(t => doneOnDate(t) || (toMin(t.time) >= 0 && toMin(t.time) <= nowMin)) : [];
   // untuk non-hari-ini: tampil semua biasa
   const listMain = isToday ? [...ongoing, ...upcoming] : agenda;
 

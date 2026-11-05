@@ -42,8 +42,9 @@ export async function usdIdr(): Promise<number> {
 // Return { 'YYYY-MM-DD': kurs } utk rentang from..today; weekend/libur → kurs hari kerja terakhir.
 export async function usdIdrSeries(from: string): Promise<Record<string, number>> {
   const cacheKey = 'fxusd:' + from;
-  const cached = await getKv(cacheKey, null);
-  if (cached && typeof cached === 'object') return cached as Record<string, number>;
+  const cached = await getKv(cacheKey, null) as Record<string, number> | null;
+  // cache masih segar kalau sudah mencakup hari ini
+  if (cached && typeof cached === 'object' && cached[today()]) return cached;
   try {
     const u = `https://api.frankfurter.app/${from}..?from=USD&to=IDR`;
     const r = await fetch(u);

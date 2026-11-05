@@ -102,7 +102,13 @@ export default function Settings() {
 
       <Sec icon={<Ic.eye size={17} />} title="Keamanan">
         <input type="password" inputMode="numeric" value={pin} onChange={e => setPin(e.target.value)} placeholder="PIN baru (kosongkan untuk mematikan)" />
-        <button className="btn alt" onClick={async () => { if (pin) localStorage.setItem('pin', await sha(pin)); else localStorage.removeItem('pin'); setPin(''); setMsg(pin ? 'PIN aktif.' : 'PIN dimatikan.'); }}>Simpan PIN</button>
+        <button className="btn alt" onClick={async () => {
+  if (pin) {
+    localStorage.setItem('pin', await sha(pin));
+    sessionStorage.setItem('duitku-pin-session', pin); // vault notes langsung terikat PIN baru
+  } else { localStorage.removeItem('pin'); sessionStorage.removeItem('duitku-pin-session'); }
+  setPin(''); setMsg(pin ? 'PIN aktif.' : 'PIN dimatikan.');
+}}>Simpan PIN</button>
       </Sec>
 
       <Sec icon={<Ic.wallet size={17} />} title="Data & backup">

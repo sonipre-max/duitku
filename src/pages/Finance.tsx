@@ -59,6 +59,7 @@ export default function Finance() {
     const amount = num(f.amount);
     if (!amount) return;
     if (type === 'tf') {
+      if (!f.toId || !accounts.some(a => a.id === f.toId)) return; // rekening tujuan wajib valid
       if (f.accountId === f.toId) return;
       await db.txs.bulkAdd([
         { date: f.date, type: 'out', amount, category: 'Transfer', accountId: f.accountId, note: f.note || 'Transfer keluar' },
