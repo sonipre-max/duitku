@@ -56,7 +56,7 @@ export const TOOL_FNS: Record<string, Fn> = {
     if (!Number.isFinite(a.amount) || a.amount <= 0) return 'Error: amount harus angka finite > 0';
     if (!['in', 'out'].includes(a.type)) return 'Error: type harus in atau out';
     const date = a.date || ctx.today;
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) || Number.isNaN(Date.parse(date)) || new Date(date + 'T00:00:00Z').toISOString().slice(0, 10) !== date) return 'Error: date harus tanggal valid YYYY-MM-DD';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date)) || new Date(date + 'T00:00:00Z').toISOString().slice(0, 10) !== date) return 'Error: date harus tanggal valid YYYY-MM-DD';
     const accounts = await db.accounts.toArray();
     const accId = a.accountId ?? accounts[0]?.id;
     if (!accId || !accounts.some(x => x.id === accId)) return 'Error: accountId tidak ditemukan atau belum ada rekening';
@@ -80,7 +80,7 @@ export const TOOL_FNS: Record<string, Fn> = {
   list_tasks: async (a, ctx) => {
     const { db } = await import('./db');
     const date = a.date || ctx.today;
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) || Number.isNaN(Date.parse(date))) return 'Error: date harus YYYY-MM-DD';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date))) return 'Error: date harus YYYY-MM-DD';
     const allTasks = await db.tasks.toArray();
     const list = a.all ? allTasks : allTasks.filter((t: any) => {
       if (date < t.date) return false;
