@@ -48,25 +48,50 @@ export const TOOL_FNS: Record<string, Fn> = {
     else list = list.filter((t: any) => t.date.startsWith(ctx.month));
     if (a.category) list = list.filter((t: any) => t.category.toLowerCase().includes(String(a.category).toLowerCase()));
     if (a.type) list = list.filter((t: any) => t.type === a.type);
-    return JSON.stringify(list.slice(0, a.limit || 20));
+    const limit = Number.isFinite(a.limit) ? Math.min(100, Math.max(1, Math.floor(a.limit))) : 20;
+    return JSON.stringify(list.slice(0, limit));
   },
   add_transaction: async (a, ctx) => {
     const { db } = await import('./db');
-    if (!(a.amount > 0)) return 'Error: amount harus > 0';
+    if (!Number.isFinite(a.amount) || a.amount <= 0) return 'Error: amount harus angka finite > 0';
+    if (!['in', 'out'].includes(a.type)) return 'Error: type harus in atau out';
+    const date = a.date || ctx.today;
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) || Number.isNaN(Date.parse(date)) || new Date(date + 'T00:00:00Z').toISOString().slice(0, 10) !== date) return 'Error: date harus tanggal valid YYYY-MM-DD';
     const accounts = await db.accounts.toArray();
-    const accId = a.accountId || accounts[0]?.id;
-    if (!accId) return 'Error: belum ada rekening';
-    const type = a.type === 'in' ? 'in' : 'out';
-    await db.txs.add({ date: a.date || ctx.today, type, amount: a.amount, category: a.category || 'Lainnya', accountId: accId, note: a.note || 'Dicatat via AI' });
-    return `OK: transaksi ${type === 'in' ? 'pemasukan' : 'pengeluaran'} Rp${a.amount} (${a.category || 'Lainnya'}) tersimpan.`;
+    const accId = a.accountId ?? accounts[0]?.id;
+    if (!accId || !accounts.some(x => x.id === accId)) return 'Error: accountId tidak ditemukan atau belum ada rekening';
+    const type = a.type;
+    const category = String(a.category || 'Lainnya').trim();
+    const outCats = ['Makan','Transport','Belanja','Tagihan','Hiburan','Kesehatan','Pendidikan','Lainnya'];
+    const inCats = ['Gaji','Bonus','Usaha','Investasi','Lainnya'];
+    if (!(type === 'in' ? inCats : outCats).includes(category)) return 'Error: kategori tidak sesuai dengan jenis transaksi';
+    const note = String(a.note || 'Dicatat via AI').slice(0, 500);
+    await db.txs.add({ date, type, amount: a.amount, category, accountId: accId, note });
+    return `OK: transaksi ${type === 'in' ? 'pemasukan' : 'pengeluaran'} Rp${a.amount} (${category}) tersimpan.`;
   },
   delete_transaction: async (a) => {
+    if (!Number.isInteger(a.id) || a.id <= 0) return 'Error: ID transaksi tidak valid';
     if (!(globalThis as any).__duitkuConfirm?.(`Hapus transaksi #${a.id}?`)) return 'DIBATALKAN: user tidak konfirmasi. Jangan ulangi tanpa persetujuan.';
-    const { db } = await import('./db'); await db.txs.delete(a.id); return `OK: transaksi #${a.id} dihapus.`;
+    const { db } = await import('./db');
+    const exists = await db.txs.get(a.id);
+    if (!exists) return `Error: transaksi #${a.id} tidak ditemukan`;
+    await db.txs.delete(a.id); return `OK: transaksi #${a.id} dihapus.`;
   },
   list_tasks: async (a, ctx) => {
     const { db } = await import('./db');
-    const list = a.all ? await db.tasks.toArray() : (await db.tasks.toArray()).filter((t: any) => t.date === (a.date || ctx.today));
+    const date = a.date || ctx.today;
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) || Number.isNaN(Date.parse(date))) return 'Error: date harus YYYY-MM-DD';
+    const allTasks = await db.tasks.toArray();
+    const list = a.all ? allTasks : allTasks.filter((t: any) => {
+      if (date < t.date) return false;
+      if (t.repeat === 'none') return t.date === date;
+      if (t.repeat === 'daily') return true;
+      const start = new Date(t.date + 'T00:00:00');
+      const target = new Date(date + 'T00:00:00');
+      if (t.repeat === 'weekly') return start.getDay() === target.getDay();
+      const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+      return start.getDate() === target.getDate() || (start.getDate() >= 29 && target.getDate() === last && start.getDate() > target.getDate());
+    });
     return JSON.stringify(list);
   },
   add_task: async (a, ctx) => {
@@ -80,15 +105,21 @@ export const TOOL_FNS: Record<string, Fn> = {
   complete_task: async (a, ctx) => {
     const { db } = await import('./db');
     const list = await db.tasks.toArray();
-    const t = a.id ? list.find((x: any) => x.id === a.id) : list.find((x: any) => x.title.toLowerCase().includes(String(a.title || '').toLowerCase()));
-    if (!t) return 'Error: tugas tidak ditemukan';
+    if (!a.id && !String(a.title || '').trim()) return 'Error: berikan ID atau judul tugas';
+    const matches = a.id ? list.filter((x: any) => x.id === a.id) : list.filter((x: any) => x.title.toLowerCase().includes(String(a.title).trim().toLowerCase()));
+    if (!matches.length) return 'Error: tugas tidak ditemukan';
+    if (matches.length > 1) return 'Error: judul cocok dengan beberapa tugas. Berikan ID tugas yang tepat.';
+    const t = matches[0];
     if (t.repeat === 'none') await db.tasks.update(t.id!, { done: true });
     else await db.tasks.update(t.id!, { doneOn: (t.doneOn || []).includes(ctx.today) ? t.doneOn : [...(t.doneOn || []), ctx.today] });
     return `OK: tugas "${t.title}" ditandai selesai.`;
   },
   delete_task: async (a) => {
+    if (!Number.isInteger(a.id) || a.id <= 0) return 'Error: ID tugas tidak valid';
     if (!(globalThis as any).__duitkuConfirm?.(`Hapus tugas #${a.id}?`)) return 'DIBATALKAN: user tidak konfirmasi. Jangan ulangi tanpa persetujuan.';
-    const { db } = await import('./db'); await db.tasks.delete(a.id); return `OK: tugas #${a.id} dihapus.`;
+    const { db } = await import('./db');
+    if (!(await db.tasks.get(a.id))) return `Error: tugas #${a.id} tidak ditemukan`;
+    await db.tasks.delete(a.id); return `OK: tugas #${a.id} dihapus.`;
   },
   list_accounts: async () => {
     const { db } = await import('./db');
@@ -104,6 +135,8 @@ export const TOOL_FNS: Record<string, Fn> = {
   },
   set_budget: async (a) => {
     const { db } = await import('./db');
+    const allowed = ['Makan','Transport','Belanja','Tagihan','Hiburan','Kesehatan','Pendidikan','Lainnya'];
+    if (!allowed.includes(a.category) || !Number.isFinite(a.limit) || a.limit <= 0) return 'Error: kategori atau batas anggaran tidak valid';
     const ex = (await db.budgets.toArray()).find(b => b.category === a.category);
     if (ex) await db.budgets.update(ex.id!, { limit: a.limit });
     else await db.budgets.add({ category: a.category, limit: a.limit });
