@@ -2,48 +2,79 @@ import { db, DcaPlan, Trade } from './db';
 import { addDays, today } from './util';
 import { isIDR, series, usdIdr, usdIdrSeries } from './market';
 
-// Isi pembelian harian dari hari terakhir dijalankan sampai hari ini (backfill).
-// Tanggal mulai di masa lalu = mode backtest. Hari tanpa harga (libur bursa) dilewati.
-export async function runPlan(plan: DcaPlan): Promise<number> {
+// Kunci per plan mencegah pemanggilan bersamaan dalam satu tab.
+// Pemeriksaan idempotensi di transaksi IndexedDB juga melindungi dari tab/perangkat
+// yang menjalankan sinkronisasi pada rentang tanggal yang sama.
+const runningPlans = new Map<number, Promise<number>>();
+
+async function runPlanUnlocked(plan: DcaPlan): Promise<number> {
   const t = today();
   const from = plan.lastRun ? addDays(plan.lastRun, 1) : plan.startDate;
   if (from > t) return 0;
 
-  // total alokasi wajar 99–101% (toleransi pembulatan pecahan)
   const total = Object.values(plan.alloc).reduce((s, v) => s + v, 0);
   if (total < 99 || total > 101) throw new Error(`${plan.name}: total alokasi ${total.toFixed(1)}% tidak valid`);
-  const norm = total / 100; // normalisasi agar total dana = plan.daily persis
+  const norm = total / 100;
 
-  const rate = await usdIdr(); // fallback & harga kini
-  const fx = isIDR(Object.keys(plan.alloc).find(a => !isIDR(a)) || '') ? null : await usdIdrSeries(from); // kurs historis per tanggal
+  const rate = await usdIdr();
+  const fx = isIDR(Object.keys(plan.alloc).find(a => !isIDR(a)) || '') ? null : await usdIdrSeries(from);
   const assets = Object.keys(plan.alloc);
   const ser: Record<string, Record<string, number>> = {};
   for (let i = 0; i < assets.length; i++) {
-    ser[assets[i]] = await series(assets[i], from); // lempar error jika offline
-    if (i < assets.length - 1) await new Promise(r => setTimeout(r, 300)); // jeda antar-request
+    ser[assets[i]] = await series(assets[i], from);
+    if (i < assets.length - 1) await new Promise(r => setTimeout(r, 300));
   }
 
   const rows: Trade[] = [];
   for (let d = from; d <= t; d = addDays(d, 1)) {
     for (const [a, pct] of Object.entries(plan.alloc)) {
       const px = ser[a][d];
-      if (!px) continue;
-      // kurs sesuai tanggal pembelian (historis), bukan satu kurs hari ini
+      if (!px || !Number.isFinite(px) || px <= 0) continue;
       const price = isIDR(a) ? px : px * (fx?.[d] || rate);
-      const amount = (plan.daily * pct) / (100 * norm); // alokasi dinormalisasi
-      rows.push({ planId: plan.id!, date: d, symbol: a, price, amount, qty: price > 0 ? amount / price : 0 });
+      const amount = (plan.daily * pct) / (100 * norm);
+      const qty = price > 0 ? amount / price : 0;
+      if (Number.isFinite(price) && Number.isFinite(qty) && qty > 0) {
+        rows.push({ planId: plan.id!, date: d, symbol: a, price, amount, qty });
+      }
     }
   }
-  // buang qty 0 (harga 0/korup) agar tidak merusak rata-rata & valuasi
-  const clean = rows.filter(r => r.qty > 0);
-  if (!clean.length) return 0;
+  if (!rows.length) return 0;
 
+  let inserted = 0;
   await db.transaction('rw', db.trades, db.plans, async () => {
-    await db.trades.bulkAdd(clean);
-    // lastRun = tanggal terakhir yang benar-benar kebeli; hari tanpa harga (libur) dicoba lagi nanti
-    await db.plans.update(plan.id!, { lastRun: clean.reduce((m, r) => r.date > m ? r.date : m, plan.lastRun || plan.startDate) });
+    const existing = await db.trades.where('planId').equals(plan.id!).toArray();
+    const keys = new Set(existing.map(r => `${r.date}|${r.symbol}`));
+    const fresh = rows.filter(r => {
+      const key = `${r.date}|${r.symbol}`;
+      if (keys.has(key)) return false;
+      keys.add(key);
+      return true;
+    });
+    if (fresh.length) await db.trades.bulkAdd(fresh);
+    inserted = fresh.length;
+
+    // Jangan menggeser lastRun ke belakang. Baris yang sudah ada tetap dihitung
+    // sebagai telah diproses, sehingga retry tidak menggandakan pembelian.
+    const latestProcessed = rows.reduce((m, r) => r.date > m ? r.date : m, plan.lastRun || plan.startDate);
+    if (latestProcessed > (plan.lastRun || '')) {
+      await db.plans.update(plan.id!, { lastRun: latestProcessed });
+    }
   });
-  return clean.length;
+  return inserted;
+}
+
+export async function runPlan(plan: DcaPlan): Promise<number> {
+  if (plan.id == null) throw new Error('ID rencana DCA tidak valid.');
+  const active = runningPlans.get(plan.id);
+  if (active) return active;
+
+  const task = runPlanUnlocked(plan);
+  runningPlans.set(plan.id, task);
+  try {
+    return await task;
+  } finally {
+    if (runningPlans.get(plan.id) === task) runningPlans.delete(plan.id);
+  }
 }
 
 export async function runAll(): Promise<string> {
