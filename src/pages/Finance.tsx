@@ -61,13 +61,20 @@ export default function Finance() {
     if (type === 'tf') {
       if (!f.toId || !accounts.some(a => a.id === f.toId)) return; // rekening tujuan wajib valid
       if (f.accountId === f.toId) return;
+      const transferId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `tf-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       await db.txs.bulkAdd([
-        { date: f.date, type: 'out', amount, category: 'Transfer', accountId: f.accountId, note: f.note || 'Transfer keluar' },
-        { date: f.date, type: 'in', amount, category: 'Transfer', accountId: f.toId, note: f.note || 'Transfer masuk' }
+        { date: f.date, type: 'out', amount, category: 'Transfer', accountId: f.accountId, note: f.note || 'Transfer keluar', transferId },
+        { date: f.date, type: 'in', amount, category: 'Transfer', accountId: f.toId, note: f.note || 'Transfer masuk', transferId }
       ]);
     } else await db.txs.add({ date: f.date, type: type as 'in' | 'out', amount, category: f.category, accountId: f.accountId, note: f.note });
     setF({ ...f, amount: '', note: '' });
     setSheet('');
+  };
+  const deleteTransfer = async (transferId: string) => {
+    if (!confirm('Hapus kedua sisi transfer ini?')) return;
+    await db.transaction('rw', db.txs, async () => {
+      await db.txs.where('transferId').equals(transferId).delete();
+    });
   };
   const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""').replace(/[\r\n]+/g, ' ')}"`;
   const csv = () => saveFile('transaksi.csv', 'tanggal,jenis,jumlah,kategori,akun,catatan\n' +
@@ -248,8 +255,13 @@ export default function Finance() {
                 <div style={{ flex: 1, minWidth: 0 }}><div>{t.category}{t.note ? ` · ${t.note}` : ''}</div><div className="tag">{accounts.find(a => a.id === t.accountId)?.name}</div></div>
                 <div style={{ textAlign: 'right' }}>
                   <b className={t.type === 'in' ? 'pos' : 'neg'}>{t.type === 'in' ? '+' : '-'}{idr(t.amount)}</b><br />
-                  <button className="link" onClick={() => setEd({ id: t.id!, amount: String(t.amount), category: t.category, note: t.note || '', date: t.date })}>Edit</button>
-                  <button className="link" onClick={() => db.txs.delete(t.id!)}>Hapus</button>
+                  {t.category === 'Transfer' ? (
+                    t.transferId ? <button className="link" onClick={() => deleteTransfer(t.transferId!)}>Hapus transfer</button>
+                      : <span className="tag">Transfer lama: edit/hapus dinonaktifkan demi keamanan saldo</span>
+                  ) : <>
+                    <button className="link" onClick={() => setEd({ id: t.id!, amount: String(t.amount), category: t.category, note: t.note || '', date: t.date })}>Edit</button>
+                    <button className="link" onClick={() => db.txs.delete(t.id!)}>Hapus</button>
+                  </>}
                 </div>
               </div>
             ))}
@@ -267,7 +279,7 @@ export default function Finance() {
             <h2>Edit transaksi</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               <input inputMode="numeric" placeholder="Nominal (Rp)" value={ed.amount} onChange={e => setEd({ ...ed, amount: e.target.value })} />
-              <select value={ed.category} onChange={e => setEd({ ...ed, category: e.target.value })}>{[...IN, ...OUT].map(c => <option key={c}>{c}</option>)}</select>
+              <select value={ed.category} onChange={e => setEd({ ...ed, category: e.target.value })}>{(ed.category === 'Transfer' ? ['Transfer'] : (txs.find(t => t.id === ed.id)?.type === 'in' ? IN : OUT)).map(c => <option key={c}>{c}</option>)}</select>
               <input type="date" value={ed.date} onChange={e => setEd({ ...ed, date: e.target.value })} />
               <input placeholder="Catatan" value={ed.note} onChange={e => setEd({ ...ed, note: e.target.value })} />
               <button className="btn" onClick={async () => {
