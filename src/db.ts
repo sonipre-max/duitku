@@ -1,7 +1,7 @@
 import Dexie, { Table } from 'dexie';
 
 export interface Account { id?: number; name: string; balance0: number }
-export interface Tx { id?: number; date: string; type: 'in' | 'out'; amount: number; category: string; accountId: number; note: string }
+export interface Tx { id?: number; date: string; type: 'in' | 'out'; amount: number; category: string; accountId: number; note: string; transferId?: string }
 export interface Budget { id?: number; category: string; limit: number }
 export interface Task {
   id?: number; title: string; date: string; time: string; priority: 1 | 2 | 3;
@@ -36,6 +36,10 @@ class DB extends Dexie {
     super('duitku');
     this.version(2).stores({
       accounts: '++id', txs: '++id,date,accountId', budgets: '++id', tasks: '++id,date',
+      plans: '++id', trades: '++id,planId,symbol,date', kv: 'key', notes: '++id,kind,date,taskId'
+    });
+    this.version(3).stores({
+      accounts: '++id', txs: '++id,date,accountId,transferId', budgets: '++id', tasks: '++id,date',
       plans: '++id', trades: '++id,planId,symbol,date', kv: 'key', notes: '++id,kind,date,taskId'
     });
   }
