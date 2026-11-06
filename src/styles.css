@@ -118,24 +118,24 @@ section{
 /* ── Efek 3D nyata: bevel atas, specular edge, shading bawah ── */
 section::before{
   content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:1;
-  background:linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.06) 14%, rgba(255,255,255,0) 30%, rgba(0,0,0,.14) 96%, rgba(0,0,0,.22) 100%),
+  background:linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.1) 10%, rgba(255,255,255,0) 26%, rgba(0,0,0,.16) 92%, rgba(0,0,0,.32) 100%),
              radial-gradient(130% 70% at 50% -12%, rgba(255,255,255,.26), transparent 55%),
              linear-gradient(90deg, rgba(255,255,255,.1), transparent 12%, transparent 88%, rgba(0,0,0,.1));
-  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.65), inset 0 -1.5px 0 rgba(0,0,0,.22), inset 1.5px 0 0 rgba(255,255,255,.14), inset -1.5px 0 0 rgba(0,0,0,.14);
+  box-shadow:inset 0 3px 2px -1px rgba(255,255,255,.9), inset 0 -3px 4px -1px rgba(0,0,0,.35), inset 2.5px 0 3px -1px rgba(255,255,255,.25), inset -2.5px 0 3px -1px rgba(0,0,0,.25);
 }
 section > *{position:relative; z-index:2}
 html[data-time='night'] section::before,
 .dashTop::before,.agendaCard::before,.mottoBanner::before,.qsItem::before{
-  background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04) 14%, rgba(255,255,255,0) 30%, rgba(0,0,0,.22) 96%, rgba(0,0,0,.3) 100%);
-  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.32), inset 0 -1.5px 0 rgba(0,0,0,.4);
+  background:linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.06) 12%, rgba(255,255,255,0) 28%, rgba(0,0,0,.24) 92%, rgba(0,0,0,.36) 100%);
+  box-shadow:inset 0 3px 2px -1px rgba(255,255,255,.5), inset 0 -3px 4px -1px rgba(0,0,0,.5);
 }
 /* Kartu beranda (div custom) dapat bevel yang sama */
 .dashTop::before,.agendaCard::before,.mottoBanner::before,.qsItem::before{
   content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:1;
-  background:linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.06) 14%, rgba(255,255,255,0) 30%, rgba(0,0,0,.14) 96%, rgba(0,0,0,.22) 100%),
+  background:linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.1) 10%, rgba(255,255,255,0) 26%, rgba(0,0,0,.16) 92%, rgba(0,0,0,.32) 100%),
              radial-gradient(130% 70% at 50% -12%, rgba(255,255,255,.26), transparent 55%),
              linear-gradient(90deg, rgba(255,255,255,.1), transparent 12%, transparent 88%, rgba(0,0,0,.1));
-  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.65), inset 0 -1.5px 0 rgba(0,0,0,.22), inset 1.5px 0 0 rgba(255,255,255,.14), inset -1.5px 0 0 rgba(0,0,0,.14);
+  box-shadow:inset 0 3px 2px -1px rgba(255,255,255,.9), inset 0 -3px 4px -1px rgba(0,0,0,.35), inset 2.5px 0 3px -1px rgba(255,255,255,.25), inset -2.5px 0 3px -1px rgba(0,0,0,.25);
 }
 /* pastikan konten di atas overlay */
 .dashTop>*:not(::before){position:relative;z-index:2}
@@ -397,7 +397,7 @@ input,select,textarea,button{transition:border-color .15s, background .15s, tran
 /* ── Dashboard mockup: avatar/jam/cuaca + band wallpaper + ringkasan/agenda ── */
 /* teks putih dashTop harus kebaca di wallpaper terang: scrim belakang dashTop */
 .dashTop{padding:2px 2px 10px;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.5)}
-.dashTop{position:relative}
+.dashTop,.agendaCard,.mottoBanner,.qsItem{box-shadow:0 3px 8px rgba(0,0,0,.18),0 14px 34px -8px rgba(0,0,0,.45),0 30px 70px -20px rgba(0,0,0,.5);position:relative}
 .dashGreet{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .dashGreet .avatar{position:relative;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:30px;border:2px solid rgba(255,255,255,.5);flex-shrink:0}
 .dashGreet .crown{position:absolute;right:-6px;bottom:-4px;font-size:16px}
