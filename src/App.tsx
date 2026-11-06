@@ -102,13 +102,10 @@ export default function App() {
   }, []);
 
   if (locked) return <><Lock onOk={() => setLocked(false)} /><Splash done={booted} locked={true} /></>;
-  const title = cfg ? 'Setelan' : TABS.find(t => t[0] === tab)![1];
   return (
     <div className="app">
       <Splash done={booted} locked={false} />
-      <div className="top">
-        <h1>{title}</h1>
-      </div>
+
       <main>
         <Suspense fallback={<div className="loading">Memuat menu…</div>}>
           {cfg ? <Settings /> : tab === 'home' ? <Home go={setTab} /> : tab === 'uang' ? <Finance />
