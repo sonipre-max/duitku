@@ -540,15 +540,20 @@ html[data-time='night'] .qaBtn{background:linear-gradient(160deg,rgba(30,27,75,.
 .sheetBk{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);z-index:90;animation:fadein .18s ease}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 .sheet{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:480px;z-index:91;
-  background:linear-gradient(160deg,rgba(255,255,255,.92),rgba(255,255,255,.85));
-  backdrop-filter:blur(24px) saturate(1.6);border-radius:24px 24px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom));
+  background:linear-gradient(160deg,var(--glass-hi),var(--glass-lo) 40%),var(--sf);
+  backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border-radius:var(--radius) var(--radius) 0 0;border:1px solid var(--line);border-bottom:none;
+  padding:10px 20px calc(20px + env(safe-area-inset-bottom));
   box-shadow:0 -12px 40px rgba(0,0,0,.3);animation:slideup .22s cubic-bezier(.2,.8,.3,1);display:flex;flex-direction:column;gap:9px}
 @keyframes slideup{from{transform:translate(-50%,60%)}to{transform:translate(-50%,0)}}
 .sheet h2{margin-bottom:2px}
 .sheetBar{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.18);margin:2px auto 6px}
-html[data-time='night'] .sheet{background:linear-gradient(160deg,rgba(23,20,50,.96),rgba(23,20,50,.92));color:#f1f5fb}
-html[data-time='night'] .sheetBar{background:rgba(255,255,255,.25)}
-html[data-time='night'] .sheet input,html[data-time='night'] .sheet select{background:rgba(148,163,184,.15);color:#fff;border-color:rgba(148,163,184,.3)}
+html[data-theme='night'] .sheet{color:#f1f5fb}
+html[data-theme='night'] .sheetBar{background:rgba(255,255,255,.25)}
+html[data-theme='night'] .sheet input,html[data-theme='night'] .sheet select{background:rgba(148,163,184,.15);color:#fff;border-color:rgba(148,163,184,.3)}
+html[data-theme='gold'] .sheet{color:#3a2a05}
+html[data-theme='cyber'] .sheet{color:#e8e2ff}
+html[data-theme='day'] .sheet{color:#1c2340}
 .chipWrap{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:inline-flex;align-items:center;gap:4px;padding:6px 11px;border-radius:99px;border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.25);backdrop-filter:blur(12px);color:var(--ink);font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 2px 10px -4px rgba(0,0,0,.3)}
 .chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
