@@ -766,7 +766,10 @@ nav.floatnav .nlab{font-size:9px}
   opacity: 1; transition: opacity .7s ease;
 }
 html[data-theme='gold'] .splash { background: linear-gradient(165deg, #241a05 0%, #332407 55%, #1d1404 100%); }
-html[data-theme='cyber'] .splash { background: linear-gradient(165deg, #0b0518 0%, #150a2e 55%, #1f0a33 100%); }
+html[data-theme='cyber'] .splash, html[data-theme='night'] .splash { background: linear-gradient(165deg, #0b0518 0%, #150a2e 55%, #1f0a33 100%); }
+.splash::before { content: ''; position: absolute; inset: 0; background: rgba(8,10,24,.55); }
+html[data-theme='day'] .splash::before { background: rgba(255,255,255,.45); }
+.splash > * { position: relative; z-index: 1; }
 html[data-theme='day'] .splash { background: linear-gradient(165deg, #eaf4ff 0%, #e2f3ea 60%, #dce9ff 100%); }
 .splashHide { opacity: 0; pointer-events: none; }
 .splashLogo { font-size: 54px; filter: drop-shadow(0 6px 18px rgba(124,77,255,.45)); animation: splashPop .7s cubic-bezier(.2,.9,.3,1.4) both; }
