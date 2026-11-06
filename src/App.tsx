@@ -6,6 +6,14 @@ const Invest = lazy(() => import('./pages/Invest'));
 const AI = lazy(() => import('./pages/AI'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Notes = lazy(() => import('./pages/Notes'));
+
+// Preload semua chunk menu saat idle — cegah menu "kosong" saat klik cepat (chunk belum ter-load)
+function preloadPages() {
+  const warm = () => { import('./pages/Finance'); import('./pages/Todo'); import('./pages/Invest'); import('./pages/AI'); import('./pages/Settings'); import('./pages/Notes'); };
+  if ('requestIdleCallback' in window) (window as any).requestIdleCallback(warm, { timeout: 3000 });
+  else setTimeout(warm, 1200);
+}
+preloadPages();
 import { db } from './db';
 import { runAll } from './dca';
 import { Ic } from './icons';
@@ -57,8 +65,8 @@ function Splash({ done, locked }: { done: boolean; locked: boolean }) {
   const [gone, setGone] = useState(false);
   useEffect(() => {
     if (!done) return;
-    const t1 = setTimeout(() => setHide(true), 250);   // mulai fade
-    const t2 = setTimeout(() => setGone(true), 950);   // unmount setelah transisi
+    const t1 = setTimeout(() => setHide(true), 4000);  // hold splash (total ≈ 5 dtk dari fade-in)
+    const t2 = setTimeout(() => setGone(true), 5000);  // unmount setelah fade-out 1 dtk
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [done]);
   if (gone) return null;
@@ -105,7 +113,7 @@ export default function App() {
         </div>
       </div>
       <main>
-        <Suspense fallback={<div className="loading">…</div>}>
+        <Suspense fallback={<div className="loading">Memuat menu…</div>}>
           {cfg ? <Settings /> : tab === 'home' ? <Home go={setTab} /> : tab === 'uang' ? <Finance />
             : tab === 'tugas' ? <Todo /> : tab === 'dca' ? <Invest /> : tab === 'notes' ? <Notes /> : <AI />}
         </Suspense>
