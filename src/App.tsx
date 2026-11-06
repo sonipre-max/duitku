@@ -108,9 +108,6 @@ export default function App() {
       <Splash done={booted} locked={false} />
       <div className="top">
         <h1>{title}</h1>
-        <div className="topbtns">
-          <button className={'icobtn' + (tab === 'ai' && !cfg ? ' on' : '')} title="Chat AI" onClick={() => { setTab('ai'); setCfg(false); }}><Ic.ai size={20} /></button>
-        </div>
       </div>
       <main>
         <Suspense fallback={<div className="loading">Memuat menu…</div>}>
