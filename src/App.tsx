@@ -51,10 +51,32 @@ function Lock({ onOk }: { onOk: () => void }) {
 
 const TABS = [['home', 'Beranda', 'home'], ['uang', 'Keuangan', 'wallet'], ['tugas', 'To Do', 'todo'], ['dca', 'Investasi', 'invest'], ['ai', 'Lainnya', 'ai'], ['notes', 'Catatan', 'note']] as const;
 
+// Splash: tampil sekali per buka app sampai boot (DB init + DCA) selesai, lalu fade-out
+function Splash({ done, locked }: { done: boolean; locked: boolean }) {
+  const [hide, setHide] = useState(false);
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    if (!done) return;
+    const t1 = setTimeout(() => setHide(true), 250);   // mulai fade
+    const t2 = setTimeout(() => setGone(true), 950);   // unmount setelah transisi
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [done]);
+  if (gone) return null;
+  return (
+    <div className={'splash' + (hide ? ' splashHide' : '')}>
+      <div className="splashLogo">💎</div>
+      <h1>FINTRA</h1>
+      <div className="splashTag">{locked ? 'Buka brankas lo…' : 'Duit lo, data lo, perangkat lo.'}</div>
+      <div className="splashBar"><div className="splashFill" /></div>
+    </div>
+  );
+}
+
 export default function App() {
   const [locked, setLocked] = useState(!!localStorage.getItem('pin'));
   const [tab, setTab] = useState<string>('home');
   const [cfg, setCfg] = useState(false);
+  const [booted, setBooted] = useState(false);
 
   useEffect(() => {
     // konfirmasi delete AI: selalu tersedia selama app hidup
@@ -65,13 +87,15 @@ export default function App() {
     })();
     // jalankan ulang tiap 6 jam selama app terbuka — cleanup benar dikembalikan ke React
     const iv = setInterval(async () => { try { await runAll(); } catch { /* offline */ } }, 6 * 60 * 60 * 1000);
+    setBooted(true);
     return () => clearInterval(iv);
   }, []);
 
-  if (locked) return <Lock onOk={() => setLocked(false)} />;
+  if (locked) return <><Lock onOk={() => setLocked(false)} /><Splash done={booted} locked={true} /></>;
   const title = cfg ? 'Setelan' : TABS.find(t => t[0] === tab)![1];
   return (
     <div className="app">
+      <Splash done={booted} locked={false} />
       <div className="top">
         <h1>{title}</h1>
         <div className="topbtns">
