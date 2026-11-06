@@ -103,7 +103,7 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
   };
 
   const Row = ({ t, state }: { t: typeof agenda[0]; state: 'now' | 'next' | 'past' }) => (
-    <div className={'agRow ' + state + (t.done ? ' ok' : '')} key={t.id}>
+    <div className={'agRow ' + state + (t.done ? ' ok' : '')} key={t.id} onClick={() => go && go('notes')} title="Buka catatan agenda ini" style={{ cursor: 'pointer' }}>
       <span className={'adot' + (state === 'now' ? ' live' : t.done ? ' ok' : '')} />
       <span className="agIco">{(() => { const D = Deco[pickIco(t.title, t.priority)] as any; return <D width={19} />; })()}</span>
       <div className="agTxt">
@@ -112,6 +112,7 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
         {state === 'now' && <span className="cd live">● Berlangsung</span>}
         {state === 'next' && isToday && countdown(t.time) && <span className="cd">⏳ {countdown(t.time)}</span>}
       </div>
+      <span className="agNoteBtn" title="Tulis catatan utk agenda ini" onClick={e => { e.stopPropagation(); go && go('notes'); }}><Ic.pencil size={15} /></span>
     </div>
   );
 
@@ -143,11 +144,11 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
       </div>
 
       <div className="quickSum">
-        <button className="qsItem" onClick={() => go && go('uang')} title="Catat pemasukan">
+        <button className="qsItem" onClick={() => { go && go('uang'); setTimeout(() => window.dispatchEvent(new CustomEvent('duitku:newsheet', { detail: 'in' })), 350); }} title="Catat pemasukan">
           <span className="qsIco in"><Ic.down size={16} strokeWidth={2.6} /></span>
           <div className="qsTxt"><b className="pos">{idr(inc)}</b><span>Pemasukan</span></div>
         </button>
-        <button className="qsItem" onClick={() => go && go('uang')} title="Catat pengeluaran">
+        <button className="qsItem" onClick={() => { go && go('uang'); setTimeout(() => window.dispatchEvent(new CustomEvent('duitku:newsheet', { detail: 'out' })), 350); }} title="Catat pengeluaran">
           <span className="qsIco out"><Ic.up size={16} strokeWidth={2.6} /></span>
           <div className="qsTxt"><b className="neg">{idr(out)}</b><span>Pengeluaran</span></div>
         </button>
@@ -159,10 +160,9 @@ export default function SkyCard({ go }: { go?: (t: string) => void }) {
         <div className="dashHead">
           <span className="starBadge blue"><Ic.calendar size={16} /></span>
           <div className="agTitle">
-            <b>Agenda {dayLabel}</b>
-            <span className="agDate">{dateLabel}</span>
+            <b>Agenda {dayLabel} · {dateLabel}</b>
           </div>
-          <a className="dashLink" href="#" onClick={e => { e.preventDefault(); go && go('tugas'); }}>Lihat Semua ›</a>
+          <a className="dashLink" href="#" title="Buka semua agenda di To Do" aria-label="Buka To Do" onClick={e => { e.preventDefault(); go && go('tugas'); }}><Ic.note size={17} /></a>
         </div>
         <div className="agSwipe">
           <button className="agNav" onClick={() => setDayOff(x => x - 1)} aria-label="Hari sebelumnya">‹</button>

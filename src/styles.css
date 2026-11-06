@@ -449,9 +449,11 @@ html[data-time='night'] section h2,html[data-time='night'] section .row,html[dat
 .homeCol{display:flex;flex-direction:column;min-height:calc(100vh - 150px)} /* tinggi viewport minus header+nav — konten didorong ke bawah */
 .homeCol .quickSum{margin-top:auto} /* dorong semua konten (ringkasan, agenda, banner) ke bawah — space lega di bawah jam+cuaca */
 .agendaCard{margin-bottom:12px}
-.agTitle{flex:1;display:flex;flex-direction:column;min-width:0}
-.agTitle b{font-size:14.5px}
-.agDate{font-size:10.5px;color:var(--mute)}
+.agTitle{flex:1;display:flex;min-width:0;align-items:center;gap:6px}
+.agTitle b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agTitle b span{font-size:10.5px;color:var(--mute);font-weight:600}
+.agNoteBtn{flex-shrink:0;width:28px;height:28px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--soft);color:var(--mute);border:none;cursor:pointer}
+.agNoteBtn:hover{color:var(--acc)}
 .agSwipe{display:flex;align-items:stretch;gap:6px}
 .agNav{width:26px;border-radius:12px;background:var(--soft);border:none;color:var(--mute);font-size:16px;font-weight:700;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .agNav:active{background:var(--ac);color:#fff}

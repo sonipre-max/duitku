@@ -27,6 +27,13 @@ export default function Finance() {
   const [ed, setEd] = useState<{ id: number; amount: string; category: string; note: string; date: string } | null>(null);
   useEffect(() => { if (accounts.length && !f.accountId) setF(x => ({ ...x, accountId: accounts[0].id!, toId: accounts[0].id! })); }, [accounts.length]);
 
+  // Beranda: kartu Pemasukan/Pengeluaran minta buka sheet catat otomatis
+  useEffect(() => {
+    const h = (e: Event) => { const k = (e as CustomEvent).detail; if (k === 'in' || k === 'out') setSheet(k); };
+    window.addEventListener('duitku:newsheet', h);
+    return () => window.removeEventListener('duitku:newsheet', h);
+  }, []);
+
   const bal = (id: number) => (accounts.find(a => a.id === id)?.balance0 || 0) +
     txs.filter(t => t.accountId === id).reduce((s, t) => s + (t.type === 'in' ? t.amount : -t.amount), 0);
   const m = today().slice(0, 7);
