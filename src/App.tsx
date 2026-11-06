@@ -64,10 +64,12 @@ function Splash({ done, locked }: { done: boolean; locked: boolean }) {
   if (gone) return null;
   return (
     <div className={'splash' + (hide ? ' splashHide' : '')}>
-      <div className="splashLogo">💎</div>
-      <h1>FINTRA</h1>
-      <div className="splashTag">{locked ? 'Buka brankas lo…' : 'Duit lo, data lo, perangkat lo.'}</div>
-      <div className="splashBar"><div className="splashFill" /></div>
+      <div className="splashCard">
+        <div className="splashLogo">💎</div>
+        <h1>FINTRA</h1>
+        <div className="splashTag">{locked ? 'Buka brankas lo…' : 'Duit lo, data lo, perangkat lo.'}</div>
+        <div className="splashBar"><div className="splashFill" /></div>
+      </div>
     </div>
   );
 }
