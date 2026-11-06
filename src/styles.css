@@ -124,10 +124,24 @@ section::before{
   box-shadow:inset 0 1.5px 0 rgba(255,255,255,.65), inset 0 -1.5px 0 rgba(0,0,0,.22), inset 1.5px 0 0 rgba(255,255,255,.14), inset -1.5px 0 0 rgba(0,0,0,.14);
 }
 section > *{position:relative; z-index:2}
-html[data-time='night'] section::before{
+html[data-time='night'] section::before,
+.dashTop::before,.agendaCard::before,.mottoBanner::before,.qsItem::before{
   background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04) 14%, rgba(255,255,255,0) 30%, rgba(0,0,0,.22) 96%, rgba(0,0,0,.3) 100%);
   box-shadow:inset 0 1.5px 0 rgba(255,255,255,.32), inset 0 -1.5px 0 rgba(0,0,0,.4);
 }
+/* Kartu beranda (div custom) dapat bevel yang sama */
+.dashTop::before,.agendaCard::before,.mottoBanner::before,.qsItem::before{
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:1;
+  background:linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.06) 14%, rgba(255,255,255,0) 30%, rgba(0,0,0,.14) 96%, rgba(0,0,0,.22) 100%),
+             radial-gradient(130% 70% at 50% -12%, rgba(255,255,255,.26), transparent 55%),
+             linear-gradient(90deg, rgba(255,255,255,.1), transparent 12%, transparent 88%, rgba(0,0,0,.1));
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.65), inset 0 -1.5px 0 rgba(0,0,0,.22), inset 1.5px 0 0 rgba(255,255,255,.14), inset -1.5px 0 0 rgba(0,0,0,.14);
+}
+/* pastikan konten di atas overlay */
+.dashTop>*:not(::before){position:relative;z-index:2}
+.agendaCard>*:not(::before){position:relative;z-index:2}
+.mottoBanner>*:not(::before){position:relative;z-index:2}
+.qsItem>*:not(::before){position:relative;z-index:2}
 html[data-time='night'] section::before{
   background:linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,0) 20%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(0,0,0,.3);
@@ -383,9 +397,7 @@ input,select,textarea,button{transition:border-color .15s, background .15s, tran
 /* ── Dashboard mockup: avatar/jam/cuaca + band wallpaper + ringkasan/agenda ── */
 /* teks putih dashTop harus kebaca di wallpaper terang: scrim belakang dashTop */
 .dashTop{padding:2px 2px 10px;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.5)}
-.dashTop::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.05) 70%,transparent);border-radius:20px;pointer-events:none}
 .dashTop{position:relative}
-.dashTop>*{position:relative;z-index:1}
 .dashGreet{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .dashGreet .avatar{position:relative;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:30px;border:2px solid rgba(255,255,255,.5);flex-shrink:0}
 .dashGreet .crown{position:absolute;right:-6px;bottom:-4px;font-size:16px}
@@ -426,7 +438,7 @@ input,select,textarea,button{transition:border-color .15s, background .15s, tran
 .agRow .agTxt{flex:1;min-width:0;display:flex;flex-direction:column}
 .agRow .agTxt b{font-size:13.5px}
 .agRow .agTxt span{font-size:11px;color:var(--mute)}
-.mottoBanner{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.16);backdrop-filter:blur(14px) saturate(1.4);border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:11px 16px;margin-bottom:12px;box-shadow:0 1px 1px rgba(255,255,255,.35) inset}
+.mottoBanner{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.16);backdrop-filter:blur(14px) saturate(1.4);border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:11px 16px;margin-bottom:12px;box-shadow:0 1px 1px rgba(255,255,255,.35) inset;position:relative}
 .mottoBanner .mIco{font-size:20px}
 .mottoBanner .mTxt{flex:1;min-width:0}
 .mottoBanner .mTxt b{display:block;font-size:13.5px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.4)}
@@ -439,7 +451,7 @@ input,select,textarea,button{transition:border-color .15s, background .15s, tran
 .qsItem{flex:1;display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:16px;cursor:pointer;min-width:0;
   background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(255,255,255,.12));
   backdrop-filter:blur(16px) saturate(1.5);border:1px solid rgba(255,255,255,.4);
-  box-shadow:0 1px 0 rgba(255,255,255,.45) inset,0 0 0 1px rgba(255,255,255,.08) inset,0 0 18px -4px rgba(255,255,255,.35),0 4px 10px -3px rgba(0,0,0,.3),0 10px 22px -10px rgba(0,0,0,.4)}
+  box-shadow:0 1px 0 rgba(255,255,255,.45) inset,0 0 0 1px rgba(255,255,255,.08) inset,0 0 18px -4px rgba(255,255,255,.35),0 4px 10px -3px rgba(0,0,0,.3),0 10px 22px -10px rgba(0,0,0,.4);position:relative}
 .qsItem:active{transform:scale(.97)}
 .qsIco{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
 .qsIco.in{background:rgba(34,197,94,.22);color:#22c55e}
@@ -468,7 +480,7 @@ html[data-time='night'] section h2,html[data-time='night'] section .row,html[dat
 /* ── Agenda hari ini: swipe antar hari + countdown + agenda lewat ── */
 .homeCol{display:flex;flex-direction:column;min-height:calc(100vh - 150px)} /* tinggi viewport minus header+nav — konten didorong ke bawah */
 .homeCol .quickSum{margin-top:auto} /* dorong semua konten (ringkasan, agenda, banner) ke bawah — space lega di bawah jam+cuaca */
-.agendaCard{margin-bottom:12px}
+.agendaCard{margin-bottom:12px;position:relative}
 .agTitle{flex:1;display:flex;min-width:0;align-items:center;gap:6px}
 .agTitle b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .agTitle b span{font-size:10.5px;color:var(--mute);font-weight:600}
