@@ -94,7 +94,7 @@ export async function series(id: string, from: string): Promise<Record<string, n
     const p1 = Math.floor(parse(from).getTime() / 1000) - 86400;
     const p2 = Math.floor(Date.now() / 1000) + 86400;
     // Yahoo tidak mengirim CORS → web lewat proxy worker (retry otomatis), native langsung
-    const isNative = typeof (window as any).Capacitor !== 'undefined' && !(window as any).Capacitor.isWebPlatform?.();
+    const isNative = typeof (window as any).Capacitor?.isNativePlatform === 'function' && (window as any).Capacitor.isNativePlatform();
     const url = isNative
       ? `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?period1=${p1}&period2=${p2}&interval=1d&events=div%2Csplit`
       : `${YPROXY}?s=${encodeURIComponent(sym)}&p1=${p1}&p2=${p2}`;
