@@ -50,6 +50,7 @@ export default function Invest() {
   const [watchLoading, setWatchLoading] = useState(true);
   const [msg, setMsg] = useState('');
   const [sheet, setSheet] = useState(false);
+  const [detailPlan, setDetailPlan] = useState<number | null>(null);
   const [name, setName] = useState('DCA harian');
   const [daily, setDaily] = useState('10000');
   const [start, setStart] = useState(today());
@@ -242,9 +243,21 @@ export default function Invest() {
               );
             })}
             <div className="g2">
+              <button className="btn alt" onClick={() => setDetailPlan(detailPlan === p.id ? null : p.id!)}>{detailPlan === p.id ? 'Tutup riwayat' : 'Riwayat pembelian'}</button>
               <button className="btn alt" onClick={() => db.plans.update(p.id!, { active: !p.active })}>{p.active ? 'Jeda' : 'Lanjutkan'}</button>
               <button className="btn alt" onClick={() => remove(p.id!)}>Hapus</button>
             </div>
+            {detailPlan === p.id && (
+              <div style={{ marginTop: 8, maxHeight: 220, overflowY: 'auto' }}>
+                {[...tr].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30).map(t => (
+                  <div key={t.id} className="row" style={{ border: 0, padding: '4px 0' }}>
+                    <span>{t.date} · {label(t.symbol)}</span>
+                    <div style={{ textAlign: 'right' }}><b>{idr(t.amount)}</b><div className="tag">{t.qty.toPrecision(5)} unit @ {idr(t.amount / t.qty)}</div></div>
+                  </div>
+                ))}
+                {tr.length === 0 && <div className="tag">Belum ada pembelian — klik Sinkron harga.</div>}
+              </div>
+            )}
           </section>
         );
       })}
