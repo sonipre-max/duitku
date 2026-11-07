@@ -1,6 +1,6 @@
 import { db, DcaPlan, Trade } from './db';
 import { addDays, today } from './util';
-import { isIDR, series, usdIdr, usdIdrSeries } from './market';
+import { isIDR, series, usdIdr, usdIdrSeries, label as labelOf } from './market';
 
 // Kunci per plan mencegah pemanggilan bersamaan dalam satu tab.
 // Pemeriksaan idempotensi di transaksi IndexedDB juga melindungi dari tab/perangkat
@@ -20,18 +20,26 @@ async function runPlanUnlocked(plan: DcaPlan): Promise<number> {
   const fx = isIDR(Object.keys(plan.alloc).find(a => !isIDR(a)) || '') ? null : await usdIdrSeries(from);
   const assets = Object.keys(plan.alloc);
   const ser: Record<string, Record<string, number>> = {};
+  const failed: string[] = [];
   for (let i = 0; i < assets.length; i++) {
-    ser[assets[i]] = await series(assets[i], from);
+    try { ser[assets[i]] = await series(assets[i], from); }
+    catch { failed.push(assets[i]); } // 1 aset gagal jangan batalin seluruh plan
     if (i < assets.length - 1) await new Promise(r => setTimeout(r, 300));
   }
+  if (failed.length === assets.length) throw new Error(`${plan.name}: semua sumber harga gagal (${failed.map(labelOf).join(', ')})`);
 
+  // alokasi dinormalisasi ulang hanya dari aset yang harganya tersedia
+  const okAlloc = Object.fromEntries(Object.entries(plan.alloc).filter(([a]) => ser[a]));
+  const okTotal = Object.values(okAlloc).reduce((s, v) => s + v, 0);
+  if (!okTotal) return 0;
+  const okNorm = okTotal / 100;
   const rows: Trade[] = [];
   for (let d = from; d <= t; d = addDays(d, 1)) {
-    for (const [a, pct] of Object.entries(plan.alloc)) {
+    for (const [a, pct] of Object.entries(okAlloc)) {
       const px = ser[a][d];
       if (!px || !Number.isFinite(px) || px <= 0) continue;
       const price = isIDR(a) ? px : px * (fx?.[d] || rate);
-      const amount = (plan.daily * pct) / (100 * norm);
+      const amount = (plan.daily * pct) / (100 * okNorm);
       const qty = price > 0 ? amount / price : 0;
       if (Number.isFinite(price) && Number.isFinite(qty) && qty > 0) {
         rows.push({ planId: plan.id!, date: d, symbol: a, price, amount, qty });

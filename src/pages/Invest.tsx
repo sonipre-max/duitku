@@ -66,7 +66,8 @@ export default function Invest() {
     Object.entries(pct).forEach(([k, v]) => { if (num(v) > 0) alloc[k] = num(v); });
     await db.plans.add({ name, daily: d, startDate: start, lastRun: '', alloc, active: true });
     setMsg('Menyinkronkan harga…');
-    setMsg(await runAll());
+    const r = await runAll();
+    setMsg(r);
     setSheet(false);
   };
   const remove = async (id: number) => { await db.trades.where('planId').equals(id).delete(); await db.plans.delete(id); };
