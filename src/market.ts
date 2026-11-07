@@ -98,8 +98,13 @@ export async function series(id: string, from: string): Promise<Record<string, n
     const url = isNative
       ? `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?period1=${p1}&period2=${p2}&interval=1d&events=div%2Csplit`
       : `${YPROXY}?s=${encodeURIComponent(sym)}&p1=${p1}&p2=${p2}`;
-    const r = await fetch(url, isNative ? { headers: { 'User-Agent': 'Mozilla/5.0' } } as any : {});
-    const res = (await r.json())?.chart?.result?.[0];
+    let res: any = null;
+    for (let att = 0; att < 3 && !res; att++) {
+      try {
+        const r = await fetch(url, isNative ? { headers: { 'User-Agent': 'Mozilla/5.0' } } as any : {});
+        res = (await r.json())?.chart?.result?.[0];
+      } catch { await new Promise(r => setTimeout(r, 800 + att * 600)); }
+    }
     if (!res) throw new Error('Yahoo: data tidak ditemukan untuk ' + sym);
     const ts: number[] = res.timestamp || [];
     const cl: number[] = res.indicators?.adjclose?.[0]?.adjclose || res.indicators?.quote?.[0]?.close || [];
