@@ -116,7 +116,10 @@ export default function Todo() {
           <div className="sheetBk" onClick={() => setEdit(null)} />
           <div className="sheet">
             <div className="sheetBar" />
-            <h2>Edit tugas</h2>
+            <div className="row" style={{ border: 0 }}>
+              <h2 style={{ margin: 0 }}>Edit tugas</h2>
+              <button className="icobtn" onClick={() => setEdit(null)} aria-label="Tutup"><Ic.x size={18} /></button>
+            </div>
             <form onSubmit={e => { e.preventDefault(); if (!edit.title.trim()) return; (async () => { const upd = { title: edit.title.trim(), time: edit.time, priority: edit.priority, repeat: edit.repeat, date: edit.date }; await db.tasks.update(edit.id!, upd); cancel(edit.id!); schedule({ ...edit, ...upd } as Task); })(); setEdit(null); }} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               <input value={edit.title} onChange={e => setEdit({ ...edit, title: e.target.value })} />
               <input type="date" value={edit.date} onChange={e => setEdit({ ...edit, date: e.target.value })} />
@@ -140,7 +143,10 @@ export default function Todo() {
           <div className="sheetBk" onClick={() => setSheet(false)} />
           <div className="sheet">
             <div className="sheetBar" />
-            <h2>Tugas baru</h2>
+            <div className="row" style={{ border: 0 }}>
+            <h2 style={{ margin: 0 }}>Tugas baru</h2>
+            <button className="icobtn" onClick={() => setSheet(false)} aria-label="Tutup"><Ic.x size={18} /></button>
+          </div>
             <form onSubmit={e => { e.preventDefault(); add(); }} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               <input placeholder="Apa yang perlu dilakukan?" autoFocus value={f.title} onChange={e => setF({ ...f, title: e.target.value })} />
               <div className="g2">

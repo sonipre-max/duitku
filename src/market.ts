@@ -21,6 +21,9 @@ export const isIDR = (id: string) => id.endsWith('.JK');
 // Header Binance API key (opsional, menaikkan rate limit) — hanya di native/Capacitor.
 // Di browser mengirim header arbitrary ke Binance memicu preflight CORS yang tidak diizinkan,
 // jadi key hanya dipakai di APK (CapacitorHttp lewat jalur native, bebas CORS).
+// Proxy Yahoo (CORS) — Cloudflare Worker dengan retry otomatis antar host
+const YPROXY = 'https://yproxy.thin-engine-a04.workers.dev/';
+
 function bH(): Record<string, string> | undefined {
   const key = loadCfg().binanceKey;
   if (!key) return undefined;
@@ -90,7 +93,12 @@ export async function series(id: string, from: string): Promise<Record<string, n
   } else {
     const p1 = Math.floor(parse(from).getTime() / 1000) - 86400;
     const p2 = Math.floor(Date.now() / 1000) + 86400;
-    const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?period1=${p1}&period2=${p2}&interval=1d&events=div%2Csplit`);
+    // Yahoo tidak mengirim CORS → web lewat proxy worker (retry otomatis), native langsung
+    const isNative = typeof (window as any).Capacitor !== 'undefined' && !(window as any).Capacitor.isWebPlatform?.();
+    const url = isNative
+      ? `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?period1=${p1}&period2=${p2}&interval=1d&events=div%2Csplit`
+      : `${YPROXY}?s=${encodeURIComponent(sym)}&p1=${p1}&p2=${p2}`;
+    const r = await fetch(url, isNative ? { headers: { 'User-Agent': 'Mozilla/5.0' } } as any : {});
     const res = (await r.json())?.chart?.result?.[0];
     if (!res) throw new Error('Yahoo: data tidak ditemukan untuk ' + sym);
     const ts: number[] = res.timestamp || [];
@@ -112,6 +120,7 @@ export async function latest(id: string): Promise<number> {
       const s = await series(id, addDays(today(), -7));
       const ks = Object.keys(s).sort();
       p = s[ks[ks.length - 1]];
+      if (!p) throw new Error('harga kosong');
     }
     const v = isIDR(id) ? p : p * rate;
     if (v) await setKv('px:' + id, v);

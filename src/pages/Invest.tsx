@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { db } from '../db';
-import { ASSETS, label, latest } from '../market';
+import { ASSETS, label, latest, usdIdr, isIDR } from '../market';
+import { addDays } from '../util';
 import { runAll } from '../dca';
 import { idr, num, today } from '../util';
 import { Ic } from '../icons';
@@ -15,6 +16,8 @@ export default function Invest() {
   const plans = useLiveQuery(() => db.plans.toArray(), []) || [];
   const trades = useLiveQuery(() => db.trades.toArray(), []) || [];
   const [px, setPx] = useState<Record<string, number>>({});
+  const [watch, setWatch] = useState<Record<string, { p: number; prev: number; t: string }>>({});
+  const [watchLoading, setWatchLoading] = useState(true);
   const [msg, setMsg] = useState('');
   const [sheet, setSheet] = useState(false);
   const [name, setName] = useState('DCA harian');
@@ -26,6 +29,33 @@ export default function Invest() {
   const syms = [...new Set(trades.map(t => t.symbol))];
   const [syncedAt, setSyncedAt] = useState('');
   useEffect(() => { (async () => { const o: Record<string, number> = {}; for (const s of syms) o[s] = await latest(s); setPx(o); setSyncedAt(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })); })(); }, [syms.join(',')]);
+
+  // ── Watchlist pasar: crypto, emas, saham — pantau harga langsung tanpa buka broker ──
+  const WATCH = ['bn:BTCUSDT', 'bn:ETHUSDT', 'bn:SOLUSDT', 'bn:PAXGUSDT', 'yf:BBCA.JK', 'yf:BBRI.JK', 'yf:TLKM.JK', 'yf:AAPL', 'yf:GC=F'];
+  const [watchIds, setWatchIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('ivwatch') || '') || WATCH; } catch { return WATCH; }
+  });
+  const refreshWatch = async (ids: string[]) => {
+    setWatchLoading(true);
+    const out: Record<string, { p: number; prev: number; t: string }> = {};
+    for (const id of ids) {
+      try {
+        const { series } = await import('../market');
+        const ser = await series(id, addDays(today(), -8));
+        const ks = Object.keys(ser).sort();
+        if (ks.length) {
+          const p = ser[ks[ks.length - 1]];
+          const prev = ser[ks[Math.max(0, ks.length - 2)]];
+          const rate = await usdIdr();
+          out[id] = { p: isIDR(id) ? p : p * rate, prev: isIDR(id) ? prev : prev * rate, t: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) };
+        }
+      } catch { /* offline → biarkan */ }
+      if (ids.indexOf(id) < ids.length - 1) await new Promise(r => setTimeout(r, 250));
+    }
+    setWatch(w => ({ ...w, ...out }));
+    setWatchLoading(false);
+  };
+  useEffect(() => { refreshWatch(watchIds); localStorage.setItem('ivwatch', JSON.stringify(watchIds)); }, []);
 
   const total = Object.values(pct).reduce((s, v) => s + num(v), 0);
   const d = Math.min(1e9, Math.max(1000, num(daily)));
@@ -93,6 +123,41 @@ export default function Invest() {
         <div className="tag" style={{ textAlign: 'center' }}>Simulasi harga pasar sungguhan — tanpa uang asli.{syncedAt && <> Harga terakhir disinkron {syncedAt}.</>}</div>
       </section>
 
+      {msg && <div className="tag" style={{ textAlign: 'center' }}>{msg}</div>}
+
+      {/* ── Pasar: pantau harga aset digital langsung — tanpa buka broker ── */}
+      <section>
+        <div className="row" style={{ border: 0 }}>
+          <h2 style={{ margin: 0 }}>📈 Pasar Hari Ini</h2>
+          <button className="link" onClick={() => refreshWatch(watchIds)} disabled={watchLoading}>{watchLoading ? 'Memuat…' : '⟳ Muat ulang'}</button>
+        </div>
+        {watchIds.length === 0 && <div className="tag">Semua aset disembunyikan — tambahkan lewat tombol di bawah.</div>}
+        <div className="watchGrid">
+          {watchIds.map(id => {
+            const w = watch[id];
+            const chg = w && w.prev ? ((w.p - w.prev) / w.prev) * 100 : null;
+            return (
+              <div key={id} className="watchCard" title={id}>
+                <b>{label(id)}</b>
+                {w ? <>
+                  <div className="watchPx">{idr(w.p)}</div>
+                  <div className={chg! >= 0 ? 'pos' : 'neg'} style={{ fontSize: 12, fontWeight: 700 }}>
+                    {chg! >= 0 ? '▲' : '▼'} {chg! >= 0 ? '+' : ''}{chg!.toFixed(2)}%
+                  </div>
+                  <div className="tag">{w.t}</div>
+                </> : <div className="tag">{watchLoading ? 'Memuat harga…' : 'Gagal memuat'}</div>}
+                <button className="watchX" onClick={() => setWatchIds(v => v.filter(x => x !== id))} aria-label="Sembunyikan">×</button>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+          {WATCH.filter(id => !watchIds.includes(id)).map(id => (
+            <button key={id} className="chip" onClick={() => { setWatchIds(v => [...v, id]); setTimeout(() => refreshWatch([id]), 50); }}>+ {label(id)}</button>
+          ))}
+        </div>
+      </section>
+
       <div className="qaGrid" style={{ gridTemplateColumns: '1fr 1fr' }}>
         <button className="qaBtn" onClick={async () => { setMsg('Menyinkronkan…'); setMsg(await runAll()); setSyncedAt(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })); }}>
           <span className="qaIco" style={{ background: 'rgba(34,197,94,.15)', color: '#22c55e' }}><Ic.up size={20} strokeWidth={2.2} /></span><span>Sinkron harga</span>
@@ -101,8 +166,6 @@ export default function Invest() {
           <span className="qaIco" style={{ background: 'rgba(59,130,246,.15)', color: '#3b82f6' }}><Ic.plus size={20} strokeWidth={2.2} /></span><span>Rencana baru</span>
         </button>
       </div>
-      {msg && <div className="tag" style={{ textAlign: 'center' }}>{msg}</div>}
-
       {plans.length === 0 && (
         <section className="ivEmpty">
           <div className="ivEmptyIco">🌱</div>
@@ -153,14 +216,18 @@ export default function Invest() {
         <>
           <div className="sheetBk" onClick={() => setSheet(false)} />
           <div className="sheet">
-            <div className="sheetBar" />
-            <h2>Rencana DCA baru</h2>
+            <div className="row" style={{ border: 0 }}>
+              <h2 style={{ margin: 0 }}>Rencana DCA baru</h2>
+              <button className="icobtn" onClick={() => setSheet(false)} aria-label="Kembali"><Ic.x size={18} /></button>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               <input value={name} onChange={e => setName(e.target.value)} placeholder="Nama rencana" />
-              <input inputMode="numeric" value={daily} onChange={e => setDaily(e.target.value)} placeholder="Dana per hari (Rp 1 rb – 1 M)" />
+              <div className="tag">Dana per hari: <b style={{ color: 'var(--ac)' }}>{idr(d)}</b></div>
+              <input type="range" min={1000} max={100000000} step={1000} value={d} onChange={e => setDaily(e.target.value)} style={{ padding: 0, accentColor: 'var(--ac)' }} />
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {PRESET.map(n => <button key={n} className={'chip' + (num(daily) === n ? ' on' : '')} onClick={() => setDaily(String(n))}>{short(n)}</button>)}
               </div>
+              <input inputMode="numeric" value={daily} onChange={e => setDaily(e.target.value)} placeholder="Atau ketik nominal…" />
               <div className="tag">Mulai dari tanggal (pilih tanggal lampau untuk backtest)</div>
               <input type="date" value={start} max={today()} onChange={e => setStart(e.target.value)} />
               <h2 style={{ margin: '4px 0 0' }}>Alokasi (%)</h2>
@@ -172,6 +239,15 @@ export default function Invest() {
                 <button className="btn alt" onClick={() => { if (/^(bn|yf):.+/.test(custom)) { setPct({ ...pct, [custom]: '0' }); setCustom(''); } }}>Tambah</button>
               </div>
               <div className={total === 100 ? 'pos' : 'neg'} style={{ fontWeight: 700 }}>Total {total}% · {idr(d)} per hari</div>
+              {total === 100 && (
+                <div className="tag">
+                  Estimasi 30 hari (harga kini): {Object.entries(pct).filter(([,v]) => num(v) > 0).map(([k, v]) => {
+                    const w = watch[k]; const pxk = w?.p || px[k] || 0;
+                    const budget = d * num(v) / 100;
+                    return `${label(k)} ${(budget && pxk ? (budget / pxk).toFixed(6) : '…')} unit/hari`;
+                  }).join(' · ')}
+                </div>
+              )}
               <button className="btn" onClick={create}>Mulai simulasi</button>
               <div className="tag">bn: = Binance (USDT), yf: = Yahoo Finance (saham IDX .JK). Akhir pekan/libur bursa dilewati.</div>
             </div>

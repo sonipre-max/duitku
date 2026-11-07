@@ -154,7 +154,10 @@ export default function Notes() {
           <div className="sheetBk" onClick={() => setSheet(false)} />
           <div className="sheet">
             <div className="sheetBar" />
-            <h2>{editing ? 'Edit catatan' : tab === 'umum' ? 'Catatan umum baru' : 'Notes tugas baru'}</h2>
+            <div className="row" style={{ border: 0 }}>
+            <h2 style={{ margin: 0 }}>{editing ? 'Edit catatan' : tab === 'umum' ? 'Catatan umum baru' : 'Notes tugas baru'}</h2>
+            <button className="icobtn" onClick={() => setSheet(false)} aria-label="Tutup"><Ic.x size={18} /></button>
+          </div>
             <form onSubmit={e => { e.preventDefault(); saveEdit(); }} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               <input placeholder="Judul (mis. Seed phrase wallet / Tugas Matematika)" autoFocus value={f.title} onChange={e => setF({ ...f, title: e.target.value })} />
               <textarea rows={4} placeholder={tab === 'umum' ? 'Isi catatan… (sandi, key, apa aja)' : 'Catatan harian untuk jadwal/tugas ini…'} value={f.body} onChange={e => setF({ ...f, body: e.target.value })} />

@@ -571,16 +571,25 @@ html[data-time='night'] .qaBtn{background:linear-gradient(160deg,rgba(30,27,75,.
 .dayGroup .row{border-top:none}
 .sheetBk{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);z-index:90;animation:fadein .18s ease}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
-.sheet{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:480px;z-index:91;
+/* Card input: muncul di TENGAH layar sebagai kartu mengapung 3D */
+.sheet{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:calc(100% - 32px);max-width:480px;max-height:calc(100dvh - 90px);overflow:auto;z-index:91;
   background:linear-gradient(160deg,var(--glass-hi),var(--glass-lo) 40%),var(--sf);
   backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4);
-  border-radius:var(--radius) var(--radius) 0 0;border:1px solid var(--line);border-bottom:none;
-  padding:10px 20px calc(20px + env(safe-area-inset-bottom));
-  box-shadow:0 -12px 40px rgba(0,0,0,.3);animation:slideup .22s cubic-bezier(.2,.8,.3,1);display:flex;flex-direction:column;gap:9px}
-@keyframes slideup{from{transform:translate(-50%,60%)}to{transform:translate(-50%,0)}}
+  border-radius:var(--radius);border:1px solid var(--line);
+  padding:16px 20px 20px;
+  box-shadow:inset 0 3px 2px -1px rgba(255,255,255,.9), inset 0 -3px 4px -1px rgba(0,0,0,.35), inset 2.5px 0 3px -1px rgba(255,255,255,.25), inset -2.5px 0 3px -1px rgba(0,0,0,.25),
+             0 3px 8px rgba(0,0,0,.2), 0 16px 40px -8px rgba(0,0,0,.5), 0 34px 80px -20px rgba(0,0,0,.55);
+  animation:popin .22s cubic-bezier(.2,.8,.3,1);display:flex;flex-direction:column;gap:9px;position:relative}
+.sheet::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.4), rgba(255,255,255,.06) 12%, rgba(255,255,255,0) 28%, rgba(0,0,0,.14) 94%, rgba(0,0,0,.26) 100%)}
+.sheet > *{position:relative;z-index:1}
+@keyframes popin{from{transform:translate(-50%,-46%) scale(.94);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+.sheetBar{display:none}
 .sheet h2{margin-bottom:2px}
 .sheetBar{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.18);margin:2px auto 6px}
 html[data-theme='night'] .sheet{color:#f1f5fb}
+html[data-theme='night'] .sheet::before{background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 30%, rgba(0,0,0,.2) 92%, rgba(0,0,0,.32) 100%)}
+html[data-theme='night'] .sheet{box-shadow:inset 0 3px 2px -1px rgba(255,255,255,.5), inset 0 -3px 4px -1px rgba(0,0,0,.5), 0 16px 40px -8px rgba(0,0,0,.6), 0 34px 80px -20px rgba(0,0,0,.65)}
 html[data-theme='night'] .sheetBar{background:rgba(255,255,255,.25)}
 html[data-theme='night'] .sheet input,html[data-theme='night'] .sheet select{background:rgba(148,163,184,.15);color:#fff;border-color:rgba(148,163,184,.3)}
 html[data-theme='gold'] .sheet{color:#3a2a05}
@@ -839,3 +848,14 @@ html[data-theme='day'] .splashFill { background: linear-gradient(90deg,#2196F3,#
 @keyframes splashPop { from { opacity: 0; transform: translateY(14px) scale(.92); } to { opacity: 1; transform: none; } }
 @keyframes splashFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes splashSlide { 0% { transform: translateX(-110%); } 100% { transform: translateX(390%); } }
+
+/* ── Watchlist pasar (Investasi) ── */
+.watchGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.watchCard{position:relative;border-radius:16px;padding:10px 12px;background:linear-gradient(160deg,var(--glass-hi),var(--glass-lo) 40%),var(--sf);border:1px solid var(--line);backdrop-filter:blur(12px);box-shadow:inset 0 2px 1px -1px rgba(255,255,255,.7), inset 0 -2px 3px -1px rgba(0,0,0,.3), 0 6px 16px -6px rgba(0,0,0,.4);overflow:hidden}
+.watchCard::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 30%,rgba(0,0,0,.12) 95%)}
+.watchCard > *{position:relative;z-index:1}
+.watchCard b{font-size:13px;display:block;margin-bottom:2px}
+.watchPx{font-size:14.5px;font-weight:800;font-variant-numeric:tabular-nums}
+.watchX{position:absolute;top:6px;right:8px;width:20px;height:20px;border-radius:8px;border:none;background:rgba(0,0,0,.18);color:var(--ink);font-size:13px;cursor:pointer;z-index:2}
+input[type='range']{-webkit-appearance:none;appearance:none;height:6px;border-radius:99px;background:linear-gradient(90deg,var(--ac),var(--ac2));outline:none;border:none;padding:0;margin:6px 0}
+input[type='range']::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35),0 0 0 3px var(--ac);cursor:pointer}

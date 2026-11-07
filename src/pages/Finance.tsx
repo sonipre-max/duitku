@@ -107,7 +107,10 @@ export default function Finance() {
         <div className="sheetBar" />
         {['in', 'out', 'tf', 'acc', 'budget'].includes(sheet) && (
           <>
-            <h2>{sheet === 'in' ? 'Pemasukan' : sheet === 'out' ? 'Pengeluaran' : sheet === 'tf' ? 'Transfer' : sheet === 'acc' ? 'Rekening baru' : 'Anggaran baru'}</h2>
+            <div className="row" style={{ border: 0 }}>
+              <h2 style={{ margin: 0 }}>{sheet === 'in' ? 'Pemasukan' : sheet === 'out' ? 'Pengeluaran' : sheet === 'tf' ? 'Transfer' : sheet === 'acc' ? 'Rekening baru' : 'Anggaran baru'}</h2>
+              <button className="icobtn" onClick={() => setSheet('')} aria-label="Tutup"><Ic.x size={18} /></button>
+            </div>
             {sheet === 'acc' ? (
               <>
                 <input placeholder="Nama rekening" value={acc.name} onChange={e => setAcc({ ...acc, name: e.target.value })} />
@@ -283,7 +286,10 @@ export default function Finance() {
           <div className="sheetBk" onClick={() => setEd(null)} />
           <div className="sheet">
             <div className="sheetBar" />
-            <h2>Edit transaksi</h2>
+            <div className="row" style={{ border: 0 }}>
+              <h2 style={{ margin: 0 }}>Edit transaksi</h2>
+              <button className="icobtn" onClick={() => setEd(null)} aria-label="Tutup"><Ic.x size={18} /></button>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               <input inputMode="numeric" placeholder="Nominal (Rp)" value={ed.amount} onChange={e => setEd({ ...ed, amount: e.target.value })} />
               <select value={ed.category} onChange={e => setEd({ ...ed, category: e.target.value })}>{(ed.category === 'Transfer' ? ['Transfer'] : (txs.find(t => t.id === ed.id)?.type === 'in' ? IN : OUT)).map(c => <option key={c}>{c}</option>)}</select>
