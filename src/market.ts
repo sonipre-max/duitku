@@ -49,7 +49,7 @@ export async function usdIdrSeries(from: string): Promise<Record<string, number>
   // cache masih segar kalau sudah mencakup hari ini
   if (cached && typeof cached === 'object' && cached[today()]) return cached;
   try {
-    const u = `https://api.frankfurter.app/${from}..?from=USD&to=IDR`;
+    const u = `https://api.frankfurter.dev/v1/${from}..?from=USD&to=IDR`;
     const r = await fetch(u);
     if (!r.ok) throw new Error('frankfurter ' + r.status);
     const j = await r.json();
