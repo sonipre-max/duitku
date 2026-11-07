@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.duitku.app',
-  appName: 'DuitKu',
+  appName: 'FINTRA',
   webDir: 'dist',
   // Keyboard Android: resize konten, jangan fullscreen-cover yang bikin webview crash
   android: { allowMixedContent: true },

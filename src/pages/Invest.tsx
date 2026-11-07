@@ -11,6 +11,36 @@ import { Ic } from '../icons';
 const PRESET = [1000, 10000, 100000, 1000000, 100000000, 1000000000];
 const short = (n: number) => (n >= 1e9 ? n / 1e9 + ' M' : n >= 1e6 ? n / 1e6 + ' jt' : n / 1e3 + ' rb');
 
+// sparkline mini 7 hari per kartu watchlist — cache per simbol di module scope biar gak refetch tiap render
+const sparkCache: Record<string, number[]> = {};
+function WatchSpark({ id }: { id: string }) {
+  const [pts, setPts] = useState<number[]>(sparkCache[id] || []);
+  useEffect(() => {
+    if (sparkCache[id]) return;
+    (async () => {
+      try {
+        const { series, usdIdr, isIDR } = await import('../market');
+        const ser = await series(id, addDays(today(), -7));
+        const ks = Object.keys(ser).sort();
+        const rate = await usdIdr();
+        const arr = ks.map(k => (isIDR(id) ? ser[k] : ser[k] * rate));
+        if (arr.length > 1) { sparkCache[id] = arr; setPts(arr); }
+      } catch { /* offline */ }
+    })();
+  }, [id]);
+  if (pts.length < 2) return null;
+  const min = Math.min(...pts), max = Math.max(...pts);
+  const W = 76, H = 22;
+  const path = pts.map((v, i) => `${i ? 'L' : 'M'}${(i / (pts.length - 1)) * W},${H - 2 - ((v - min) / (max - min || 1)) * (H - 4)}`).join(' ');
+  const up = pts[pts.length - 1] >= pts[0];
+  const col = up ? '#22c55e' : '#ef4444';
+  return (
+    <svg width={W} height={H} style={{ display: 'block', margin: '2px 0' }} aria-hidden>
+      <path d={path} fill="none" stroke={col} strokeWidth={1.6} strokeLinecap="round" opacity={0.9} />
+    </svg>
+  );
+}
+
 // Terinspirasi Wealthfolio: kartu nilai portofolio + sparkline, holdings dengan bar alokasi
 export default function Invest() {
   const plans = useLiveQuery(() => db.plans.toArray(), []) || [];
@@ -56,6 +86,11 @@ export default function Invest() {
     setWatchLoading(false);
   };
   useEffect(() => { refreshWatch(watchIds); localStorage.setItem('ivwatch', JSON.stringify(watchIds)); }, []);
+  // auto-refresh watchlist tiap 60 detik selama halaman terbuka
+  useEffect(() => {
+    const t = setInterval(() => { if (!watchLoading) refreshWatch(watchIds); }, 60000);
+    return () => clearInterval(t);
+  }, [watchIds.join(','), watchLoading]);
 
   const total = Object.values(pct).reduce((s, v) => s + num(v), 0);
   const d = Math.min(1e9, Math.max(1000, num(daily)));
@@ -145,6 +180,7 @@ export default function Invest() {
                   <div className={chg! >= 0 ? 'pos' : 'neg'} style={{ fontSize: 12, fontWeight: 700 }}>
                     {chg! >= 0 ? '▲' : '▼'} {chg! >= 0 ? '+' : ''}{chg!.toFixed(2)}%
                   </div>
+                  <WatchSpark id={id} />
                   <div className="tag">{w.t}</div>
                 </> : <div className="tag">{watchLoading ? 'Memuat harga…' : 'Gagal memuat'}</div>}
                 <button className="watchX" onClick={() => setWatchIds(v => v.filter(x => x !== id))} aria-label="Sembunyikan">×</button>

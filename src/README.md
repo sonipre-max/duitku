@@ -1,4 +1,4 @@
-# DuitKu
+# FINTRA
 
 Aplikasi Android pribadi: pencatatan keuangan, to-do ala kalender, dan simulasi DCA harian.
 React + TypeScript + Vite, dibungkus Capacitor. Data disimpan lokal (IndexedDB/Dexie) sehingga jalan offline.

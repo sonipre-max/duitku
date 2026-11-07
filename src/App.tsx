@@ -49,7 +49,7 @@ function Lock({ onOk }: { onOk: () => void }) {
   };
   return (
     <div className="lock">
-      <h1>DuitKu</h1>
+      <h1>FINTRA 💎</h1>
       <input type="password" inputMode="numeric" value={pin} placeholder="Masukkan PIN" onChange={e => setPin(e.target.value)} />
       <div className="neg">{err}</div>
       <button className="btn" onClick={go} disabled={wait > 0}>{wait > 0 ? `Terkunci ${wait}s` : 'Buka'}</button>

@@ -4,7 +4,7 @@ import { db, Note, Task } from '../db';
 import { parse, today } from '../util';
 import { Ic, Deco } from '../icons';
 
-// Notes DuitKu — terinspirasi Joplin (57k★: notebook terpisah + catatan tertanggal)
+// Notes FINTRA — terinspirasi Joplin (57k★: notebook terpisah + catatan tertanggal)
 // dan Standard Notes (6.7k★: vault utk sandi/key/API key yang tersembunyi).
 // Dua tab terpisah: Catatan Umum & Notes To Do (per tugas/jadwal).
 
